@@ -1,33 +1,67 @@
 :host {
-  width: 300px;
+  width: 100%;
+  padding: 0 32px 0 0;
+  display: flex;
+
+  flex-direction: column;
+  gap: 32px;
 
   //background: blue;
-  display: flex;
-  flex-direction: column;
-
-  gap: 8px;
 
   .navigation {
-    &__item {
+    &__list {
+      display: flex;
+      flex-direction: column;
+
+      height: 100%;
+      gap: 24px;
+
+      border-radius: 24px;
+      box-shadow: inset 15px 15px 30px #bebebe, inset -15px -15px 30px #ffffff;
+      padding: 24px;
+    }
+
+    &__bottom {
+      display: flex;
+      padding: 0 16px;
+    }
+
+    &__item,
+    &__item-resume {
       display: flex;
       height: 32px;
-      padding: 0 16px;
+      padding: 0 16px 0 12px;
       align-items: center;
       gap: 8px;
-
+      justify-content: space-between;
+      border: 4px solid rgb(224, 224, 224);
       transition: 0.3s ease-in-out;
       border-radius: 1000px;
-      //border: 4px solid rgb(222, 222, 222);
+      box-shadow: 7px 7px 14px #00000033, -7px -7px 14px #ffffff88;
+      background: rgba(40, 40, 40, 0.1);
+      color: black;
+      cursor: pointer;
+
       &:hover {
         box-shadow: 3px 3px 6px #00000033, -3px -3px 6px #ffffff88;
-        //background: rgb(230, 230, 230);
+        background: rgba(255, 80, 50, 0.1);
       }
 
       .icon {
-        font-size: 14px;
+        font-size: 12px;
 
         &.active {
           color: rgb(255, 80, 50);
+        }
+      }
+
+      &-resume {
+        background: rgb(255, 100, 73);
+        font-weight: 600;
+        margin-top: auto;
+
+        &:hover {
+          background: white;
         }
       }
     }

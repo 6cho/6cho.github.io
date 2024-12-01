@@ -1,10 +1,16 @@
-<div class="main-content">
-  <div class="main-content__inner">
-    <ng-content></ng-content>
+<div
+  [ngClass]="{
+  'main-content':true,
+  'scrolled':scrolled,
 
+}"
+>
+  <div class="main-content__inner" (scroll)="onScroll($event)">
     <div class="main-content__corner corner-1"></div>
     <div class="main-content__corner corner-2"></div>
     <div class="main-content__corner corner-3"></div>
     <div class="main-content__corner corner-4"></div>
+
+    <ng-content></ng-content>
   </div>
 </div>

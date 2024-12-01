@@ -1,7 +1,16 @@
-<p class="navigation__item">
-  <i class="icon fa fa-circle active"></i>Nav Item 1
-</p>
-<p class="navigation__item"><i class="icon fa fa-circle"></i>Nav Item 2</p>
-<p class="navigation__item"><i class="icon fa fa-circle"></i>Nav Item 3</p>
-<p class="navigation__item"><i class="icon fa fa-circle"></i>Nav Item 4</p>
-<p class="navigation__item"><i class="icon fa fa-circle"></i>Nav Item 5</p>
+<div class="navigation__list">
+  @for (route of routes; track route) {
+  <button class="navigation__item" (click)="navigateURL(route.path)">
+    <i class="icon fa fa-circle {{ getIconActiveClass(route.path) }}"></i>
+    {{ route.display }}
+  </button>
+  }
+  <button class="navigation__item-resume" (click)="getResume()">
+    <i class="icon fa-solid fa-chevron-down"></i>
+    Resume
+  </button>
+</div>
+
+<div class="navigation__bottom">
+  <h1>ERIC CHO</h1>
+</div>

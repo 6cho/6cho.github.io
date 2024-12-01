@@ -10,6 +10,7 @@ body {
   position: relative;
   overflow: hidden;
   font-family: "Montserrat", sans-serif;
+  background-color: rgb(224, 224, 224);
 }
 
 h1 {
@@ -22,4 +23,13 @@ h1 {
 p {
   font-size: 14px;
   margin: 0 0 8px;
+}
+
+a,
+button {
+  all: unset;
+  text-decoration: inherit;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 500;
 }
