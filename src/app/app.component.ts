@@ -33,6 +33,7 @@ export class AppComponent {
         display = display[0].toUpperCase() + display.substring(1);
         let data = {
           path: root + '/' + c.path,
+          page: c.path,
           display: display,
         };
         return data;

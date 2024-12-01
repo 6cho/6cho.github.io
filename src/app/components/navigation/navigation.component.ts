@@ -17,10 +17,10 @@ export class NavigationComponent {
 
   constructor(private readonly router: Router) {}
 
-  getIconActiveClass(path: string): string {
-    this.url = this.router.url;
+  getIconActiveClass(page: string): string {
+    this.url = this.router.url === '/' ? '/home' : this.router.url;
 
-    return this.url.includes(path) ? 'active' : '';
+    return this.url.includes(page) ? 'active' : '';
   }
 
   navigateURL(path: string) {

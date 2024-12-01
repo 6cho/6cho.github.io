@@ -1,7 +1,7 @@
 <div class="navigation__list">
   @for (route of routes; track route) {
   <button class="navigation__item" (click)="navigateURL(route.path)">
-    <i class="icon fa fa-circle {{ getIconActiveClass(route.path) }}"></i>
+    <i class="icon fa fa-circle {{ getIconActiveClass(route.page) }}"></i>
     {{ route.display }}
   </button>
   }
