@@ -1,0 +1,25 @@
+@if(activeImage){ 1111111111
+<div class="image-gallery">
+  @if(images.length>1){
+  <div class="image-gallery__icon-left">
+    <i class="fa-solid fa-chevron-left"></i>
+  </div>
+  }
+
+  <div class="image-gallery__image">
+    <div class="image-gallery__image-background">
+      <img src="{{ activeImage.src }}" alt="{{ activeImage.alt }}" />
+    </div>
+    <div class="image-gallery__image-overlay"></div>
+    <div class="image-gallery__image-active">
+      <img src="{{ activeImage.src }}" alt="{{ activeImage.alt }}" />
+    </div>
+  </div>
+
+  @if(images.length>1){
+  <div class="image-gallery__icon-right">
+    <i class="fa-solid fa-chevron-right"></i>
+  </div>
+  }
+</div>
+}

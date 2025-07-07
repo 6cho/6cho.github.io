@@ -1,4 +1,10 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  HostBinding,
+  Input,
+  Output,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,6 +18,7 @@ export class NavigationComponent {
   @HostBinding('class') class = 'component navigation';
 
   @Input() routes: any[] = [];
+  @Output() scrollNavigation: EventEmitter<number> = new EventEmitter<number>();
 
   url: string = '';
 
@@ -24,7 +31,24 @@ export class NavigationComponent {
   }
 
   navigateURL(path: string) {
+    this.scrollNavigation.emit(0);
     this.router.navigate([path]);
   }
-  getResume() {}
+  getResume() {
+    //   const link = document.createElement('a');
+    //   link.href = 'assets/resume/Eric%20Cho%20Resume.pdf';
+    //   link.download = 'Eric Cho Resume.pdf';
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   document.body.removeChild(link);
+    // }
+
+    // downloadPDF() {
+    const link = document.createElement('a');
+    link.href = 'assets/resume/Eric Cho Resume.pdf';
+    link.download = 'Eric Cho Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }

@@ -17,6 +17,8 @@ export class AppComponent {
 
   routesData: any[] = [];
 
+  scroll: number = 0;
+
   ngOnInit() {
     this.routesData = this.getRoutes() ?? [];
   }
@@ -39,5 +41,9 @@ export class AppComponent {
         return data;
       });
     return finalData;
+  }
+
+  handleChangeScroll(event: any) {
+    this.scroll = event;
   }
 }

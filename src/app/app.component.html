@@ -1,6 +1,10 @@
 <main class="main__body">
-  <navigation [routes]="routesData"> </navigation>
-  <main-content>
+  <navigation
+    [routes]="routesData"
+    (scrollNavigation)="handleChangeScroll($event)"
+  >
+  </navigation>
+  <main-content [scroll]="scroll" (scrollChange)="handleChangeScroll($event)">
     <router-outlet />
   </main-content>
 </main>

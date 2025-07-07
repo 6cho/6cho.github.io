@@ -1,0 +1,103 @@
+<div class="text-section">
+  @for (section of data; track section) { @if(section.type==='title'){
+
+  <div class="section-title">
+    <div class="section-title__header">
+      @if(section.title){
+
+      <h3 class="section-title__title">{{ section.title }}</h3>
+      } @if(section.image){
+
+      <img
+        class="section-title__image {{ section.image.class ?? '' }}"
+        src="{{ section.image.src }}"
+        alt="{{ section.image.alt }}"
+      />
+
+      }
+    </div>
+    @if(section.subtitle){
+    <p class="section-title__subtitle">{{ section.subtitle }}</p>
+
+    } @if(section.text){
+    <p class="section-title__text">{{ section.text }}</p>
+    }
+  </div>
+  } @if(section.type==='text'){
+
+  <div class="section-text">
+    @if(section.title){
+
+    <h3 class="section-text__title">{{ section.title }}</h3>
+    }@if(section.subtitle){
+    <p class="section-text__subtitle">{{ section.subtitle }}</p>
+    } @if(section.text){
+    <p class="section-text__text">{{ section.text }}</p>
+    }
+  </div>
+
+  } @if(section.type==='link'){
+
+  <div class="section-link">
+    @if(section.title){
+
+    <h3 class="section-link__title">{{ section.title }}</h3>
+    } @if(section.subtitle){
+    <p class="section-link__subtitle">{{ section.subtitle }}</p>
+
+    } @if(section.link){
+
+    <a href="{{ section.link }}" class="section-link__link">
+      <i class="icon {{ section.icon }}"></i>
+      {{ section.text }}
+    </a>
+    }
+  </div>
+
+  } @if(section.type==='two-column'){
+  <div class="section-two-column">
+    <div class="section-two-column__col-1">
+      @if(section.title){
+      <h3 class="section-two-column__title">{{ section.title }}</h3>
+      } @if(section.subtitle){
+      <p class="section-two-column__subtitle">{{ section.subtitle }}</p>
+      }
+    </div>
+    <div class="section-two-column__col-2">
+      @if(section.text){
+      <p class="section-two-column__text">{{ section.text }}</p>
+      }
+    </div>
+  </div>
+  } @if(section.type==='list'){
+  <div class="section-list">
+    @if(section.title){
+    <h3 class="section-list__title">{{ section.title }}</h3>
+    } @if(section.subtitle){
+    <p class="section-list__subtitle">{{ section.subtitle }}</p>
+    } @if(section.text){
+    <p class="section-list__text">{{ section.text }}</p>
+    } @if(section.list){
+    <ul class="section-list__list">
+      @for(item of section.list; track item) {
+      <li class="section-list__list-item">{{ item }}</li>
+      }
+    </ul>
+    }
+  </div>
+  } @if(section.type==='project'){
+  <div class="section-project">
+    @if(section.title){
+    <h3 class="section-project__title">{{ section.title }}</h3>
+    } @if(section.subtitle){
+    <p class="section-project__subtitle">{{ section.subtitle }}</p>
+    } @if(section.text){
+    <p class="section-project__text">{{ section.text }}</p>
+    }
+
+    <div class="section-project__images">
+      <image-gallery [images]="section.images"></image-gallery>
+    </div>
+  </div>
+  } }
+</div>

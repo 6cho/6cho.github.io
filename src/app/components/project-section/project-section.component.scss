@@ -1,0 +1,157 @@
+:host {
+  display: flex;
+
+  min-height: 100%;
+  //width: 100%;
+  padding: 32px;
+
+  .project-section {
+    margin: auto;
+    border-radius: 16px;
+    //border: 2px solid rgb(200, 200, 200);
+    padding: 40px;
+    width: calc(100% - 0px);
+    height: calc(100% - 0px);
+    box-shadow: 8px 8px 16px #00000033, -8px -8px 16px #ffffff77;
+    border: 8px solid rgba(224, 224, 224, 1);
+    background-color: rgb(235, 235, 235);
+
+    ::ng-deep {
+      .section-title {
+        padding-bottom: 16px;
+
+        &__header {
+          margin-bottom: 16px;
+          padding-bottom: 8px;
+          border-bottom: 4px solid rgb(200, 200, 200);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 40px;
+        }
+
+        &__title {
+          margin: 0;
+        }
+
+        &__image {
+          height: 24px;
+          width: auto;
+
+          &.large {
+            height: 48px;
+            margin-top: -12px;
+          }
+        }
+
+        &__subtitle {
+          text-align: right;
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 8px;
+          transform: translateY(-8px);
+        }
+
+        &__text {
+        }
+      }
+
+      .section-text {
+        padding-bottom: 16px;
+
+        &__title {
+        }
+
+        &__subtitle {
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        &__text {
+          text-align: justify;
+        }
+      }
+
+      .section-link {
+        padding-bottom: 16px;
+
+        &__title {
+        }
+
+        &__subtitle {
+        }
+
+        &__link {
+          transition: 0.3s ease-in-out;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          height: 32px;
+          border: 2px solid transparent;
+          border-radius: 0 1000px 1000px 0;
+
+          padding: 0 8px;
+
+          .icon {
+            font-size: 18px;
+          }
+
+          &:hover {
+            border: 2px solid rgb(255, 100, 73);
+            color: rgb(255, 100, 73);
+          }
+        }
+      }
+
+      .section-two-column {
+        padding-bottom: 16px;
+        display: flex;
+
+        &__col-1 {
+          min-width: 33%;
+          width: 33%;
+        }
+
+        &__col-2 {
+          width: 100%;
+        }
+
+        &__title {
+        }
+
+        &__subtitle {
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        &__text {
+          text-align: right;
+        }
+      }
+
+      .section-list {
+        padding-bottom: 16px;
+
+        &__title {
+        }
+
+        &__subtitle {
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        &__text {
+          text-align: right;
+        }
+
+        &__list {
+          padding-left: 16px;
+          &-item {
+            font-size: 13px;
+            margin-bottom: 8px;
+          }
+        }
+      }
+    }
+  }
+}

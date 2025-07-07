@@ -1,16 +1,24 @@
-<div class="navigation__list">
-  @for (route of routes; track route) {
-  <button class="navigation__item" (click)="navigateURL(route.path)">
-    <i class="icon fa fa-circle {{ getIconActiveClass(route.page) }}"></i>
-    {{ route.display }}
-  </button>
-  }
-  <button class="navigation__item-resume" (click)="getResume()">
-    <i class="icon fa-solid fa-chevron-down"></i>
-    Resume
-  </button>
-</div>
+<div class="navigation">
+  <div class="navigation__header">
+    <div class="navigation__item-header">
+      <h1>ERIC CHO</h1>
+    </div>
+  </div>
 
-<div class="navigation__bottom">
-  <h1>ERIC CHO</h1>
+  <div class="navigation__list">
+    @for (route of routes; track route) {
+
+    <button class="navigation__item" (click)="navigateURL(route.path)">
+      <i class="icon circle {{ getIconActiveClass(route.page) }}"></i>
+      {{ route.display }}
+    </button>
+    }
+  </div>
+
+  <div class="navigation__footer">
+    <button class="navigation__item-resume mobile" (click)="getResume()">
+      Resume
+      <i class="icon fa-solid fa-chevron-down"></i>
+    </button>
+  </div>
 </div>

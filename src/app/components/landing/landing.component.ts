@@ -8,11 +8,10 @@ import { Component, Input } from '@angular/core';
   styleUrl: './landing.component.scss',
 })
 export class LandingComponent {
-  @Input() title: string = '';
-
-  @Input() subtitles: string[] = [];
+  @Input() data: any = {};
 
   ngOnInit() {
-    this.title = this.title.toUpperCase();
+    let title = this.data.title;
+    this.data.title = title.toUpperCase();
   }
 }

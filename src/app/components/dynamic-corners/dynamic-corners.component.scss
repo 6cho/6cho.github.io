@@ -1,0 +1,129 @@
+:host {
+  .dynamic-corners {
+    &__corner {
+      border: 3px solid rgb(150, 150, 150);
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      transition: 0.3s ease-in-out;
+      z-index: 100;
+
+      &.corner-1 {
+        top: 18%;
+        left: 18%;
+        border-right: none;
+        border-bottom: none;
+      }
+
+      &.corner-2 {
+        top: 18%;
+        right: 18%;
+        border-left: none;
+        border-bottom: none;
+      }
+
+      &.corner-3 {
+        bottom: 18%;
+        right: 18%;
+        border-left: none;
+        border-top: none;
+      }
+
+      &.corner-4 {
+        bottom: 18%;
+        left: 18%;
+        border-right: none;
+        border-top: none;
+      }
+    }
+  }
+  .scrolled {
+    .dynamic-corners {
+      &__corner {
+        width: 48px;
+        height: 48px;
+        transition: 0.6s ease-in-out;
+
+        &.corner-1 {
+          top: 24px;
+          left: 24px;
+        }
+
+        &.corner-2 {
+          top: 24px;
+          right: 24px;
+        }
+
+        &.corner-3 {
+          bottom: 24px;
+          right: 24px;
+        }
+
+        &.corner-4 {
+          bottom: 24px;
+          left: 24px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  :host {
+    .dynamic-corners {
+      &__corner {
+        border-width: 2px;
+        width: 24px;
+        height: 24px;
+
+        &.corner-1 {
+          top: 10vw;
+          left: 10vw;
+        }
+
+        &.corner-2 {
+          top: 10vw;
+          right: 10vw;
+        }
+
+        &.corner-3 {
+          bottom: 10vw;
+          right: 10vw;
+        }
+
+        &.corner-4 {
+          bottom: 10vw;
+          left: 10vw;
+        }
+      }
+    }
+    .scrolled {
+      .dynamic-corners {
+        &__corner {
+          width: 16px;
+          height: 16px;
+
+          &.corner-1 {
+            top: 16px;
+            left: 16px;
+          }
+
+          &.corner-2 {
+            top: 16px;
+            right: 16px;
+          }
+
+          &.corner-3 {
+            bottom: 16px;
+            right: 16px;
+          }
+
+          &.corner-4 {
+            bottom: 16px;
+            left: 16px;
+          }
+        }
+      }
+    }
+  }
+}

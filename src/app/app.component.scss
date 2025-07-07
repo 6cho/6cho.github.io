@@ -6,21 +6,59 @@
   display: flex;
   flex-direction: column;
 
-  // padding: 16px;
   .main {
     &__body {
       display: flex;
-      //gap: 1rem;5
       height: calc(80vh);
       width: calc(80vh * 4 / 3);
       margin: auto;
       display: flex;
+      gap: 32px;
 
       border-radius: 32px;
 
       box-shadow: 7px 7px 14px #00000033, -7px -7px 14px #ffffff88;
       padding: 32px;
       position: relative;
+      transition: 0.3s ease-in-out;
+      overflow: hidden;
     }
   }
+}
+
+@media (max-width: 1200px) {
+  :host {
+    .main {
+      &__body {
+        height: calc(100% - 60px);
+        width: calc(100% - 60px);
+        padding: 16px;
+        gap: 16px;
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  :host {
+    .main {
+      &__body {
+        height: calc(100%);
+        width: calc(100%);
+        flex-direction: column-reverse;
+
+        border-radius: 0;
+
+        box-shadow: none;
+        padding: 0;
+        max-height: 100%;
+        overflow: hidden;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+}
+@media (max-width: 595px) {
 }

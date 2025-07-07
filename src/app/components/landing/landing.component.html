@@ -1,9 +1,9 @@
 <div class="landing">
   <div class="landing__header">
-    <h1>{{ title }}</h1>
+    <h2>{{ data.title }}</h2>
 
     <div class="landing__sub-header">
-      @for (subtitle of subtitles; track subtitle) {
+      @for (subtitle of data.subtitles; track subtitle) {
       <p>{{ subtitle }}</p>
 
       }

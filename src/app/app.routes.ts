@@ -1,20 +1,42 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './pages/home/home.component';
-import { ProjectsComponent } from './pages/projects/projects.component';
-import { EducationComponent } from './pages/education/education.component';
-import { ExperienceComponent } from './pages/experience/experience.component';
 
 export const routes: Routes = [
   {
     path: 'portfolio',
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
-      { path: 'home', component: HomeComponent },
-      { path: 'education', component: EducationComponent },
-      { path: 'experience', component: ExperienceComponent },
-      { path: 'projects', component: ProjectsComponent },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./pages/home/home.component').then((c) => c.HomeComponent),
+      },
+      {
+        path: 'education',
+        loadComponent: () =>
+          import('./pages/education/education.component').then(
+            (c) => c.EducationComponent
+          ),
+      },
+      {
+        path: 'experience',
+        loadComponent: () =>
+          import('./pages/experience/experience.component').then(
+            (c) => c.ExperienceComponent
+          ),
+      },
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./pages/projects/projects.component').then(
+            (c) => c.ProjectsComponent
+          ),
+      },
     ],
   },
-  { path: '', component: HomeComponent },
+  {
+    path: '',
+    loadComponent: () =>
+      import('./pages/home/home.component').then((c) => c.HomeComponent),
+  },
   { path: '**', redirectTo: '/portfolio' },
 ];
