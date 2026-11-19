@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   margin-left: auto;
   display: flex;
   height: calc(100%);
@@ -6,26 +6,105 @@
   max-height: 100%;
 
   .main-content {
-    height: calc(80vh - 120px);
-    width: calc(80vh - 120px);
+    // Fills the device's screen slot (set on the app host as --screen) so it
+    // lines up with the rail. Content-box: subtract 2 x (32px pad + 8px ring).
+    height: calc(var(--screen, calc(80vh - 40px)) - 80px);
+    width: calc(var(--screen, calc(80vh - 40px)) - 80px);
     position: relative;
     display: flex;
     transition: all 0.3s ease-in-out;
     margin: auto;
     border-radius: 50%;
-    box-shadow: 17px 17px 34px #00000033, -17px -17px 34px #ffffff77;
+    box-shadow: 17px 17px 34px rgba(40, 70, 55, 0.22), -17px -17px 34px #ffffff77;
     overflow: hidden;
-    padding: 40px;
+    // 40px minus the 8px ring, so the outer size is unchanged. The scroll area
+    // stretches back over this padding (see __inner) so content can reach the
+    // circle's edge; the padding is re-applied inside it.
+    --pad: 32px;
+    padding: var(--pad);
+
+    /* Lit display set into the grey body, ringed in base color like the buttons. */
+    border: 8px solid var(--shell);
+    background-color: #1e1f22; // warm graphite, closer to the body tones
+    color: #e6e6e6;
+
+    &__glass {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 50;
+      // Glare follows the body's top-left light source, falling off to the bottom-right.
+      background: radial-gradient(
+          110% 80% at 12% 0%,
+          rgba(255, 255, 255, 0.11),
+          transparent 50%
+        ),
+        linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.03),
+          transparent 45%,
+          rgba(0, 0, 0, 0.18)
+        );
+      // Bezel step: grey ring -> mid bezel -> fine dark seam -> recessed glass.
+      box-shadow: inset 0 0 0 3px #7d7e80, inset 0 0 0 4px #3a3b3e,
+        inset 0 0 0 5px rgba(0, 0, 0, 0.55),
+        inset 0 8px 20px rgba(0, 0, 0, 0.45);
+    }
+
+    &__status {
+      position: absolute;
+      top: 12px;
+      left: 88px;
+      right: 88px;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: rgb(120, 120, 120);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: 0.4s ease-in-out;
+
+      &-page {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgb(200, 200, 200);
+      }
+
+      &-led {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: rgb(255, 80, 50);
+        box-shadow: 0 0 8px rgba(255, 80, 50, 0.8);
+      }
+    }
+
+    &.scrolled .main-content__status {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0.2s;
+    }
 
     &__inner {
-      width: calc(100%);
-      height: calc(100%);
+      counter-reset: section;
+      // Fill the whole screen, edge to edge, so the circle itself is the clip.
+      box-sizing: border-box;
+      width: calc(100% + 2 * var(--pad));
+      height: calc(100% + 2 * var(--pad));
+      margin: calc(-1 * var(--pad));
+      padding: var(--pad);
       border-radius: 0;
+      overflow-x: hidden;
       overflow-y: scroll;
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
       transition: 0.5s ease-in-out;
-      margin: auto;
       position: relative;
 
       &::-webkit-scrollbar {
@@ -35,8 +114,25 @@
 
     &.scrolled {
       border-radius: 24px;
-      box-shadow: 10px 10px 20px #00000033, -10px -10px 20px #ffffff77;
+      box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
       transition: all 0.5s ease-in-out;
+
+      // The glass sits inside the 8px ring, so its corner is concentric:
+      // 24px outer - 8px ring = 16px.
+      .main-content__glass {
+        border-radius: 16px;
+      }
+
+      // Once open, keep the hard top/bottom edge the padding used to give.
+      .main-content__inner {
+        mask-image: linear-gradient(
+          to bottom,
+          transparent var(--pad),
+          #000 var(--pad),
+          #000 calc(100% - var(--pad)),
+          transparent calc(100% - var(--pad))
+        );
+      }
 
       .main-content {
         &__arrow-container {
@@ -63,19 +159,18 @@
       transition: all 0.3s ease-in-out;
       margin: auto;
       border-radius: 50%;
-      box-shadow: 8px 8px 16px #00000044, -8px -8px 16px #ffffff99;
+      box-shadow: 8px 8px 16px rgba(40, 70, 55, 0.28), -8px -8px 16px #ffffff99;
       overflow: hidden;
-      padding: 30px;
+      --pad: 22px;
 
       &__inner {
-        width: calc(100%);
-        height: calc(100%);
+        width: calc(100% + 2 * var(--pad));
+        height: calc(100% + 2 * var(--pad));
         border-radius: 0;
         overflow-y: scroll;
         -ms-overflow-style: none; /* IE and Edge */
         scrollbar-width: none; /* Firefox */
         transition: 0.5s ease-in-out;
-        margin: auto;
         position: relative;
 
         &::-webkit-scrollbar {
@@ -85,7 +180,7 @@
 
       &.scrolled {
         border-radius: 24px;
-        box-shadow: 10px 10px 20px #00000033, -10px -10px 20px #ffffff77;
+        box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
         transition: all 0.5s ease-in-out;
         height: calc(100% - 144px);
 
@@ -117,19 +212,18 @@
       transition: all 0.3s ease-in-out;
       margin: auto;
       border-radius: 50%;
-      box-shadow: 17px 17px 34px #00000033, -17px -17px 34px #ffffff77;
+      box-shadow: 17px 17px 34px rgba(40, 70, 55, 0.22), -17px -17px 34px #ffffff77;
       overflow: hidden;
-      padding: 30px;
+      --pad: 22px;
 
       &__inner {
-        width: calc(100%);
-        height: calc(100%);
+        width: calc(100% + 2 * var(--pad));
+        height: calc(100% + 2 * var(--pad));
         border-radius: 0;
         overflow-y: scroll;
         -ms-overflow-style: none; /* IE and Edge */
         scrollbar-width: none; /* Firefox */
         transition: 0.5s ease-in-out;
-        margin: auto;
         position: relative;
 
         &::-webkit-scrollbar {
@@ -139,7 +233,7 @@
 
       &.scrolled {
         border-radius: 24px;
-        box-shadow: 10px 10px 20px #00000033, -10px -10px 20px #ffffff77;
+        box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
         transition: all 0.5s ease-in-out;
 
         .main-content {
@@ -156,6 +250,10 @@
   :host {
     height: calc(100% - 56px - 72px);
 
+    .main-content__status {
+      display: none;
+    }
+
     .main-content {
       max-height: none;
       max-width: none;
@@ -163,11 +261,11 @@
       width: auto;
       margin: 8px;
       border-radius: 24px;
-      box-shadow: 4px 4px 8px #00000044, -4px -4px 8px #ffffff99;
-      padding: 20px;
+      box-shadow: 4px 4px 8px rgba(40, 70, 55, 0.28), -4px -4px 8px #ffffff99;
+      --pad: 12px;
 
       &.scrolled {
-        box-shadow: 4px 4px 8px #00000044, -4px -4px 8px #ffffff99;
+        box-shadow: 4px 4px 8px rgba(40, 70, 55, 0.28), -4px -4px 8px #ffffff99;
 
         .main-content {
           &__arrow-container {

@@ -5,8 +5,16 @@
 
 }"
 >
+  <div class="main-content__status" aria-hidden="true">
+    <span class="main-content__status-page">
+      <i class="main-content__status-led"></i>{{ page }}
+    </span>
+    <span>{{ percent }}%</span>
+    <span>ATL {{ time }}</span>
+  </div>
   <div class="main-content__inner" (scroll)="onScroll($event)" #innerContent>
     <ng-content></ng-content>
   </div>
+  <div class="main-content__glass" aria-hidden="true"></div>
   <dynamic-corners [scrolled]="scrolled"></dynamic-corners>
 </div>
