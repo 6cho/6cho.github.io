@@ -6,6 +6,25 @@
   min-height: 100%;
   width: 100%;
   margin-bottom: 16px;
+  @keyframes next-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(5px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing__next {
+      animation: none;
+    }
+  }
+
+  // The dot display overflows on purpose; the circular screen clips it
+  // (main-content's scroll area hides horizontal overflow).
+  position: relative;
 
   .landing {
     &__header {
@@ -18,11 +37,99 @@
 
       h2 {
         font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -2px;
+        color: rgb(240, 240, 240);
       }
 
       p {
-        color: rgb(100, 100, 100);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: rgb(130, 130, 130);
       }
+    }
+
+    // Dot-matrix display, sitting where the text title was. It's wider than the
+    // lens on purpose; the host clips whatever runs off.
+    &__display {
+      display: grid;
+      grid-template-columns: repeat(16, 50px);
+      // Exactly one dot space (dots sit on a 10px pitch inside a cell), so
+      // the whole display reads as one even dot field with a blank dot
+      // column/row between characters.
+      gap: 10px;
+      // Padding, not margin: the subtitles hang off the header's bottom edge,
+      // and a child's bottom margin collapses out of it.
+      padding-bottom: 20px;
+
+      // 50px over a 25-unit grid = 2 screen px per unit at 100%, 3 at 150%,
+      // so every dot lands on whole pixels on both.
+      &-square {
+        display: block;
+        width: 50px;
+        height: 50px;
+        fill: rgb(240, 240, 240);
+
+        // Three levels: blank dots, flickering characters, name.
+        .off {
+          opacity: 0.08;
+        }
+
+        // Scroll-driven, set from the component (see SHIMMER in landing.component.ts):
+        // the scramble fades in while the name dims to match it.
+        .noise {
+          opacity: var(--noise-opacity, 0.08);
+        }
+
+        .name {
+          opacity: var(--name-opacity, 1);
+        }
+      }
+    }
+
+    // Next-section button: screen UI in the open band between the subtitles
+    // and the lower corner brackets.
+    &__next {
+      position: absolute;
+      left: 50%;
+      bottom: 26%;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      margin-left: -22px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(240, 240, 240, 0.35);
+      color: rgba(240, 240, 240, 0.8);
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: border-color 0.3s ease, color 0.3s ease;
+      animation: next-bob 2.4s ease-in-out infinite;
+
+      // Real hover (pointer moved onto it) and keyboard focus: just the ring
+      // and chevron warm to orange.
+      &--armed:hover,
+      &:focus-visible {
+        border-color: rgb(255, 100, 73);
+        color: rgb(255, 100, 73);
+        animation-play-state: paused;
+      }
+    }
+
+    &__sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
 
     &__sub-header {
@@ -32,6 +139,26 @@
       top: calc(100%);
       right: 0;
       width: 100%;
+    }
+
+    // With the display: the grid fills the top 2/3 of the landing area, its
+    // bottom edge on the 2/3 line. Rows above run off the top of the lens.
+    &__header--display {
+      position: absolute;
+      // Bottom of the grid (above its 20px padding) one row (50px cell + 10px
+      // gap) above the 2/3 line, lifting the name toward the screen's center.
+      bottom: calc(100% / 3 - 20px + 60px);
+      // Centered on a whole pixel: the grid is 16 x 50px + 15 x 10px = 950px.
+      left: 50%;
+      margin-left: -475px;
+
+      // Keep the subtitles under the name's right edge
+      // (the name ends 6 cells in from the right: 6 x (50px cell + 10px gap)).
+      .landing__sub-header {
+        right: calc(6 * 60px);
+        width: max-content;
+        padding-right: 0;
+      }
     }
   }
 }

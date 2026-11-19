@@ -1,6 +1,30 @@
 <div class="landing">
-  <div class="landing__header">
+  <div
+    class="landing__header"
+    [class.landing__header--display]="data.display"
+    [style.opacity]="data.display ? fade : null"
+  >
+    @if (data.display) {
+    <!-- Dot-matrix name replaces the text title; the heading stays for screen readers. -->
+    <h2 class="landing__sr-only">{{ data.title }}</h2>
+    <div
+      class="landing__display"
+      aria-hidden="true"
+      [style.--noise-opacity]="noiseOpacity"
+      [style.--name-opacity]="nameOpacity"
+    >
+      @for (cell of cells; track $index) {
+      <!-- 5x5 dot matrix; glyphs are defined in landing.component.ts. -->
+      <svg class="landing__display-square" viewBox="0 0 25 25">
+        @for (dot of dots; track $index) {
+        <rect [attr.class]="cell[$index]" [attr.x]="dot.x" [attr.y]="dot.y" width="3" height="3" />
+        }
+      </svg>
+      }
+    </div>
+    } @else {
     <h2>{{ data.title }}</h2>
+    }
 
     <div class="landing__sub-header">
       @for (subtitle of data.subtitles; track subtitle) {
@@ -9,6 +33,18 @@
       }
     </div>
   </div>
+
+  <button
+    class="landing__next"
+    [class.landing__next--armed]="hoverArmed"
+    type="button"
+    aria-label="Go to next section"
+    (click)="scrollToNext($event)"
+    (pointermove)="onNextPointerMove($event)"
+    (pointerleave)="hoverArmed = false"
+  >
+    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+  </button>
 </div>
 
 <div class="space"></div>

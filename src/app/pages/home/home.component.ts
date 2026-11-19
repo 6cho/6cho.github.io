@@ -14,6 +14,7 @@ export class HomeComponent {
   public titleData = {
     title: 'Eric Cho',
     subtitles: ['Front End Developer', 'Based in Atlanta, GA'],
+    display: true,
   };
 
   public introData = [
