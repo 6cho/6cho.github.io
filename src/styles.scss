@@ -1,3 +1,16 @@
+// Frosted-sage hardware palette (retro translucent electronics).
+:root {
+  --bg: #f3efe4; // warm off-white cream the device sits on
+  --shell: #b7d1bf; // frosted sage plastic
+  --shell-light: #d8e9dd; // where light passes through thin plastic
+  --shell-deep: #9cbda8; // denser, thicker plastic
+  --shell-hi: rgba(255, 255, 255, 0.8); // light catching the plastic
+  --shell-lo: rgba(45, 95, 68, 0.32); // shadow tinted by the plastic
+  --lcd: #e8eadf; // warm, pale LCD
+  --lcd-ink: #1f2521; // LCD segments and type
+  --accent: rgb(255, 100, 73);
+}
+
 html,
 body {
   margin: 0;
@@ -10,7 +23,40 @@ body {
   position: relative;
   overflow: hidden;
   font-family: "Montserrat", sans-serif;
-  background-color: rgb(224, 224, 224);
+  background-color: var(--bg);
+}
+
+// Cream stays on <html> as the fallback; the body must be transparent or its
+// own background paints over the backdrop layers below.
+body {
+  background-color: transparent;
+}
+
+// Backdrop: a tiny 48x30 color-field image (sky over a rolling hill), blown up
+// and heavily blurred so only its color and shape survive, then frosted grain.
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body::before {
+  // Oversized well past 3x the blur radius, so the blur's fade-to-transparent
+  // edge sits far off screen and the cream underneath never bleeds in.
+  inset: -240px;
+  // A light cream wash over the colors, then muted further by the filter.
+  background: linear-gradient(rgba(243, 239, 228, 0.15), rgba(243, 239, 228, 0.15)),
+    url("assets/images/background/hills.png") center / cover;
+  filter: blur(60px) saturate(0.72) brightness(1.02);
+}
+
+body::after {
+  inset: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.7;
 }
 
 h1 {

@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -45,7 +45,7 @@
       gap: 24px;
 
       border-radius: 24px;
-      box-shadow: inset 15px 15px 30px #bebebe, inset -15px -15px 30px #ffffff;
+      box-shadow: inset 15px 15px 30px rgba(70, 105, 85, 0.35), inset -15px -15px 30px #ffffff;
       padding: 24px;
     }
 
@@ -59,16 +59,16 @@
       min-height: 32px;
       padding: 0 16px 0 12px;
       gap: 8px;
-      border: 4px solid rgb(224, 224, 224);
+      border: 4px solid var(--shell);
       transition: 0.3s ease-in-out;
       border-radius: 1000px;
-      box-shadow: 7px 7px 14px #00000033, -7px -7px 14px #ffffff88;
-      background: rgba(40, 40, 40, 0.1);
+      box-shadow: 7px 7px 14px rgba(40, 70, 55, 0.22), -7px -7px 14px #ffffff88;
+      background: rgba(45, 90, 64, 0.12);
       color: black;
       cursor: pointer;
 
       &:hover {
-        box-shadow: 2px 2px 4px #00000088, -2px -2px 4px #ffffffcc;
+        box-shadow: 2px 2px 4px rgba(40, 70, 55, 0.4), -2px -2px 4px #ffffffcc;
         background: rgba(255, 80, 50, 0.1);
       }
 
@@ -101,7 +101,7 @@
         height: 40px;
         cursor: default;
         &:hover {
-          box-shadow: 7px 7px 14px #00000033, -7px -7px 14px #ffffff88;
+          box-shadow: 7px 7px 14px rgba(40, 70, 55, 0.22), -7px -7px 14px #ffffff88;
           background: none;
         }
       }
@@ -117,17 +117,17 @@
 
     .navigation {
       &__list {
-        box-shadow: inset 8px 8px 16px #bebebe, inset -8px -8px 16px #ffffff;
+        box-shadow: inset 8px 8px 16px rgba(70, 105, 85, 0.35), inset -8px -8px 16px #ffffff;
         padding: 16px;
         gap: 16px;
       }
 
       &__item,
       &__item-resume {
-        box-shadow: 4px 4px 8px #00000033, -4px -4px 8px #ffffff88;
+        box-shadow: 4px 4px 8px rgba(40, 70, 55, 0.22), -4px -4px 8px #ffffff88;
 
         &:hover {
-          box-shadow: 2px 2px 4px #00000033, -2px -2px 4px #ffffff88;
+          box-shadow: 2px 2px 4px rgba(40, 70, 55, 0.22), -2px -2px 4px #ffffff88;
         }
       }
     }
@@ -174,7 +174,7 @@
         align-items: center;
         gap: 8px;
         justify-content: flex-start;
-        border: 4px solid rgb(224, 224, 224);
+        border: 4px solid var(--shell);
         transition: 0.3s ease-in-out;
         border-radius: 1000px;
 
