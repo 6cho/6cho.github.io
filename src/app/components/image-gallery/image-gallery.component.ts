@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 
 @Component({
   selector: 'image-gallery',
@@ -7,16 +7,26 @@ import { Component, HostBinding, Input, OnInit } from '@angular/core';
   templateUrl: './image-gallery.component.html',
   styleUrl: './image-gallery.component.scss',
 })
-export class ImageGalleryComponent implements OnInit {
+export class ImageGalleryComponent {
   @HostBinding('class') class = 'component image-gallery';
-  @Input() images: any = [];
+  @Input() images: { src: string; alt: string }[] = [];
 
-  activeImage?: any;
   activeIndex = 0;
 
-  ngOnInit(): void {
-    if (this.images.length === 0) return;
+  get activeImage() {
+    return this.images[this.activeIndex];
+  }
 
-    this.activeImage = this.images[0];
+  prev() {
+    this.go(this.activeIndex - 1);
+  }
+
+  next() {
+    this.go(this.activeIndex + 1);
+  }
+
+  go(index: number) {
+    const count = this.images.length;
+    this.activeIndex = ((index % count) + count) % count;
   }
 }

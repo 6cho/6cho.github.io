@@ -1,5 +1,14 @@
 <landing [data]="titleData"> </landing>
 
-<text-section [data]="codepenData"></text-section>
+@for (group of groups; track group.title) {
+<section class="project-group">
+  <header class="project-group__header">
+    <h3 class="project-group__title">{{ group.title }}</h3>
+    <p class="project-group__subtitle">{{ group.subtitle }}</p>
+  </header>
 
-<text-section [data]="perficientData"></text-section>
+  @for (project of group.projects; track project.title) {
+  <project-section [project]="project"></project-section>
+  }
+</section>
+}

@@ -1,0 +1,38 @@
+// Chapter dividers between project groups, magazine-style.
+.project-group {
+  padding-bottom: 24px;
+
+  &__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px 32px 8px;
+    padding-top: 14px;
+    border-top: 2px solid rgb(240, 240, 240);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgb(240, 240, 240);
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgb(110, 110, 110);
+  }
+
+  @media (max-width: 768px) {
+    &__header {
+      margin: 32px 0 4px;
+    }
+  }
+}

@@ -1,24 +1,39 @@
-@if(activeImage){ 1111111111
+@if (activeImage) {
 <div class="image-gallery">
-  @if(images.length>1){
-  <div class="image-gallery__icon-left">
+  <div class="image-gallery__backdrop">
+    <img [src]="activeImage.src" alt="" aria-hidden="true" />
+  </div>
+  <img
+    class="image-gallery__active"
+    [src]="activeImage.src"
+    [alt]="activeImage.alt"
+  />
+
+  @if (images.length > 1) {
+  <button
+    class="image-gallery__arrow image-gallery__arrow--left"
+    (click)="prev()"
+    aria-label="Previous image"
+  >
     <i class="fa-solid fa-chevron-left"></i>
-  </div>
-  }
-
-  <div class="image-gallery__image">
-    <div class="image-gallery__image-background">
-      <img src="{{ activeImage.src }}" alt="{{ activeImage.alt }}" />
-    </div>
-    <div class="image-gallery__image-overlay"></div>
-    <div class="image-gallery__image-active">
-      <img src="{{ activeImage.src }}" alt="{{ activeImage.alt }}" />
-    </div>
-  </div>
-
-  @if(images.length>1){
-  <div class="image-gallery__icon-right">
+  </button>
+  <button
+    class="image-gallery__arrow image-gallery__arrow--right"
+    (click)="next()"
+    aria-label="Next image"
+  >
     <i class="fa-solid fa-chevron-right"></i>
+  </button>
+
+  <div class="image-gallery__dots">
+    @for (image of images; track $index) {
+    <button
+      class="image-gallery__dot"
+      [class.active]="$index === activeIndex"
+      (click)="go($index)"
+      [attr.aria-label]="'Show image ' + ($index + 1)"
+    ></button>
+    }
   </div>
   }
 </div>

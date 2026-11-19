@@ -1,1 +1,32 @@
-<p>project-section works!</p>
+<article class="project">
+  @if (project.images.length) {
+  <div class="project__gallery">
+    <image-gallery [images]="project.images"></image-gallery>
+  </div>
+  }
+
+  <div class="project__body">
+    <h3 class="project__title">{{ project.title }}</h3>
+    <p class="project__tech">{{ project.tech }}</p>
+
+    @for (paragraph of project.description; track $index) {
+    <p class="project__text">{{ paragraph }}</p>
+    }
+
+    @if (project.links?.length) {
+    <div class="project__links">
+      @for (link of project.links; track link.link) {
+      <a
+        class="project__link"
+        [href]="link.link"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <i class="icon {{ link.icon }}"></i>
+        {{ link.text }}
+      </a>
+      }
+    </div>
+    }
+  </div>
+</article>

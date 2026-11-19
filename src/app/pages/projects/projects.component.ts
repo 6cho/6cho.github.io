@@ -1,167 +1,183 @@
 import { Component } from '@angular/core';
-import { TextTestComponent } from '../../components/text-test/text-test.component';
 import { LandingComponent } from '../../components/landing/landing.component';
+import {
+  Project,
+  ProjectImage,
+  ProjectSectionComponent,
+} from '../../components/project-section/project-section.component';
 
-import { TextSectionComponent } from '../../components/text-section/text-section.component';
+/** Builds the image list for a folder in assets/images named 0.png, 1.png, ... */
+function screenshots(
+  folder: string,
+  count: number,
+  title: string,
+  ext = 'png'
+): ProjectImage[] {
+  return Array.from({ length: count }, (_, i) => ({
+    src: `assets/images/${folder}/${i}.${ext}`,
+    alt: `${title} screenshot ${i + 1}`,
+  }));
+}
+
+function github(repo: string) {
+  return {
+    text: 'GitHub',
+    link: `https://github.com/6cho/${repo}`,
+    icon: 'fa-brands fa-github',
+  };
+}
+
+interface ProjectGroup {
+  title: string;
+  subtitle: string;
+  projects: Project[];
+}
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [LandingComponent, TextTestComponent, TextSectionComponent],
+  imports: [LandingComponent, ProjectSectionComponent],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
 export class ProjectsComponent {
   public titleData = {
     title: 'Projects',
-    subtitles: ['Front End', 'Full Stack', 'Hackathons'],
+    subtitles: ['Personal', 'Client Work', 'Hackathons'],
   };
 
-  // title
-  // sub title
-
-  // text
-
-  // project link
-
-  // github link
-
-  // pictures
-
-  public codepenData = [
+  public groups: ProjectGroup[] = [
     {
-      type: 'project',
-      title: 'Codepen Showcase',
-      subtitle: 'HTML, SCSS, JavaScript',
-      text:
-        'A Showcase of small front end projects publicly hosted on CodePen. These range from website components, ' +
-        'such as navigation bars, login pages, pricing pages, and ully functional projects, such as a palette generator, ' +
-        'a random shape generator and a css flex demo page.',
-      images: [
+      title: 'Personal Projects',
+      subtitle: 'Things I built on my own time',
+      projects: [
         {
-          src: 'assets/images/logos/prismhr.png',
-          alt: 'PrismHR Logo',
+          title: 'Crypto Price Chart',
+          tech: 'React, Node.js, Express.js, TradingView',
+          description: [
+            'A full stack data visualization app that gathers data on cryptocurrency ' +
+              'assets and the market as a whole. Displays live price changes, historical ' +
+              'prices, and technical indicators for over 200 cryptocurrencies using ' +
+              'interactive charts built with the TradingView library.',
+          ],
+          images: screenshots('crypto_price_chart', 6, 'Crypto Price Chart'),
+          links: [github('Crypto-Price-Chart')],
         },
         {
-          src: 'assets/images/logos/prismhr.png',
-          alt: 'PrismHR Logo',
+          title: 'Image Mesh',
+          tech: 'React, Node.js, Express.js',
+          description: [
+            'An image editor that generates edited photos from user-provided images. ' +
+              'Users can apply filters and generate pixel art, and each new image comes ' +
+              'with a color palette and gradient built from the edited result.',
+            'Backed by the Image Mesh API, a separate Node.js server that handles ' +
+              'cropping, filtering, pixelation, and palette extraction.',
+          ],
+          images: screenshots('image_mesh', 8, 'Image Mesh'),
+          links: [
+            { ...github('image-mesh-react'), text: 'GitHub (Client)' },
+            { ...github('image-mesh-server'), text: 'GitHub (API)' },
+          ],
         },
         {
-          src: 'assets/images/logos/prismhr.png',
-          alt: 'PrismHR Logo',
+          title: 'Pixel Memories',
+          tech: 'HTML, SCSS, JavaScript',
+          description: [
+            'A pixel art photo journal. Photos are organized by year and rendered as ' +
+              'pixelated snapshots, each paired with a short caption and location.',
+          ],
+          images: screenshots('pixel_memories', 5, 'Pixel Memories'),
+        },
+        {
+          title: 'Pixelfy',
+          tech: 'Spotify Web API, JavaScript',
+          description: [
+            'Connects to your Spotify account and displays your top artists as ' +
+              'pixel art, along with each artist’s genre and a color palette ' +
+              'pulled from their image.',
+          ],
+          images: screenshots('spotify_pixelfy', 1, 'Pixelfy'),
+        },
+        {
+          title: 'Synthetica',
+          tech: 'HTML, SCSS, JavaScript',
+          description: [
+            'An editorial-style showcase pairing AI-written poetry with bold, ' +
+              'magazine-inspired layouts and typography.',
+          ],
+          images: screenshots('synthetica', 6, 'Synthetica'),
+        },
+        {
+          title: 'Remodel Storefront',
+          tech: 'HTML, SCSS, JavaScript',
+          description: [
+            'A concept e-commerce storefront for a home remodeling brand, with an ' +
+              'image carousel, catalog, cart, and favorites views.',
+          ],
+          images: screenshots('remodel_storefront', 10, 'Remodel Storefront'),
+        },
+        {
+          title: 'Xi Kappa Website',
+          tech: 'Weebly CMS, HTML, CSS',
+          description: [
+            'Website for the Alpha Chapter of Xi Kappa Asian-Interest Fraternity at ' +
+              'the University of Georgia, covering the chapter’s history, initiatives, ' +
+              'brotherhood, and membership.',
+          ],
+          images: screenshots('xk_site', 8, 'Xi Kappa Website'),
         },
       ],
-      links: [
+    },
+    {
+      title: 'Client Work',
+      subtitle: 'Built at Perficient',
+      projects: [
         {
-          title: '',
-          link: '',
-          icon: '',
+          title: 'Healthcare Provider Search',
+          tech: 'Sitecore, React, TypeScript, SCSS',
+          description: [
+            'Built the front end for a national healthcare system’s “Find a Doctor” ' +
+              'and “Find a Location” search. Patients can search by distance, name, ' +
+              'and specialty, filter results, and browse them in a list or on an ' +
+              'interactive map.',
+          ],
+          images: [],
+        },
+        {
+          title: 'Retailer Store Locator',
+          tech: 'Sitecore, JavaScript, SCSS',
+          description: [
+            'Implemented the UI and front end logic for a window and door ' +
+              'manufacturer’s store locator, letting customers find certified ' +
+              'retailers by address or zip code with map results, filters, and ' +
+              'directions.',
+          ],
+          images: [],
+        },
+        {
+          title: 'Medical Equipment Product Pages',
+          tech: 'Sitecore, JavaScript, SCSS',
+          description: [
+            'Translated Figma designs into responsive, CMS-authorable product and ' +
+              'service pages for a home medical equipment provider.',
+          ],
+          images: [],
         },
       ],
     },
-  ];
-
-  public prismhrData = [
     {
-      type: 'title',
-      title: 'PrismHR',
-      image: {
-        src: 'assets/images/logos/prismhr.png',
-        alt: 'PrismHR Logo',
-      },
-    },
-
-    {
-      type: 'two-column',
-      subtitle: 'Position',
-      text: 'Mid Level Front End Developer (Angular)',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'Tech Stack',
-      text: 'Angular, TypeScript, SCSS, HTML',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'Toolset',
-      text: 'Visual Studio Code, GitHub, StoryBook, Jest, Gulp, PowerShell',
-    },
-
-    {
-      type: 'two-column',
-      subtitle: 'Timeframe',
-      text: 'Apr 2024 - Present',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'City',
-      text: 'Atlanta, GA',
-    },
-    {
-      type: 'list',
-      title: 'Key Responsibilities',
-      list: [
-        'Implemented responsive web interfaces and components using Angular, TypeScript, HTML, and SCSS from Figma prototypes.',
-        'Maintained component libraries in Storybook as a resource for the PrismHR onshore and offshore development team.',
-        'Developed first party components as a way to replace third party libraries such as Syncfusion.',
-        'Completed a large-scale refactoring of components and performed maintenance checks to our component library, and multiple developer environments, ensuring cross-browser compatibility, usability, and performance.',
-        'Apply advanced and efficient styling techniques, adhering to BEM conventions for maintainable and scalable code.',
-        'Responsible for developing code patterns used to increase efficiency and quality in code development.',
-      ],
-    },
-  ];
-
-  public perficientData = [
-    {
-      type: 'title',
-      title: 'Perficient',
-
-      image: {
-        src: 'assets/images/logos/perficient.png',
-        alt: 'Perficient Logo',
-      },
-    },
-
-    {
-      type: 'two-column',
-      subtitle: 'Position',
-      text: 'Front End Developer (Sitecore)',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'Tech Stack',
-      text: 'Sitecore, React, TypeScript, JavaScript, SCSS, HTML, jQuery, C#, SQL',
-    },
-
-    {
-      type: 'two-column',
-      subtitle: 'Toolset',
-      text: 'Visual Studio, Visual Studio Code, Sitecore CMS, Azure DevOps, GitHub, PowerShell',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'Timeframe',
-      text: 'May 2020 - Dec 2021',
-    },
-    {
-      type: 'two-column',
-      subtitle: 'City',
-      text: 'Atlanta, GA',
-    },
-    {
-      type: 'list',
-      title: 'Key Responsibilities',
-      list: [
-        'Delivered multiple projects as front end and full stack developer for clients in the healthcare and home renovation industries.',
-        'Developed front end features using JavaScript, HTML, SCSS, and Sitecore while focusing on cross-browser accessibility, mobile optimization, and responsive design.',
-        'Built full stack features in C#, JavaScript, HTML, and SCSS for an internal site used to train new interns, which included database interactions, user interfaces, and admin dashboards.',
-        'Translated Figma prototypes into responsive content pages, components, services, interfaces, and stylesheets.',
-        'Implemented the UI and front end logic for the “Find a Location/Store” search feature for multiple projects.',
-        'Built full stack features for an internal project for training new hires.',
-        'Performed bug fixes and maintenance for front end components. ',
-        'Provided active support to developers, content authors, UI designers, project managers, and client teams.',
-        'Conducted code reviews for onshores and offshore front end developers.',
-        'Regularly participated in client facing demos.',
+      title: 'Hackathons',
+      subtitle: 'Built in a weekend',
+      projects: [
+        {
+          title: 'Wand',
+          tech: 'Raspberry Pi, Python',
+          description: [
+            'A hardware hack built on a Raspberry Pi with a webcam and an ultrasonic ' +
+              'distance sensor.',
+          ],
+          images: screenshots('wand', 2, 'Wand', 'jpg'),
+        },
       ],
     },
   ];
