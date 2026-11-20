@@ -1,39 +1,51 @@
 <div class="landing">
   <div
+    #header
     class="landing__header"
-    [class.landing__header--display]="data.display"
-    [style.opacity]="data.display ? fade : null"
+    [class.landing__header--display]="showDisplay"
+    [style.--name-right]="nameRightCols"
+    [style.--shift]="shift + 'px'"
   >
-    @if (data.display) {
-    <!-- Dot-matrix name replaces the text title; the heading stays for screen readers. -->
+    @if (showDisplay) {
+    <!-- Dot-matrix title replaces the text title; the heading stays for screen readers. -->
     <h2 class="landing__sr-only">{{ data.title }}</h2>
-    <div
-      class="landing__display"
-      aria-hidden="true"
-      [style.--noise-opacity]="noiseOpacity"
-      [style.--name-opacity]="nameOpacity"
-    >
-      @for (cell of cells; track $index) {
-      <!-- 5x5 dot matrix; glyphs are defined in landing.component.ts. -->
-      <svg class="landing__display-square" viewBox="0 0 25 25">
-        @for (dot of dots; track $index) {
-        <rect [attr.class]="cell[$index]" [attr.x]="dot.x" [attr.y]="dot.y" width="3" height="3" />
+    <div #display class="landing__display" aria-hidden="true">
+      <!-- Drawn in landing.component.ts (one canvas instead of 2,400 SVG dots). -->
+      <canvas
+        #matrix
+        class="landing__display-canvas"
+        [style.width.px]="width"
+        [style.height.px]="height"
+      ></canvas>
+    </div>
+
+    <!-- Subtitles, then the chevron, stacked under the grid. Wide titles
+         center their subtitles; narrow ones right-align to the title's edge. -->
+    <div class="landing__below" [class.landing__below--center]="centerSubtitles">
+      <div class="landing__sub-header">
+        @for (subtitle of data.subtitles; track subtitle) {
+        <p>{{ subtitle }}</p>
         }
-      </svg>
-      }
+      </div>
+      <ng-container [ngTemplateOutlet]="nextButton"></ng-container>
     </div>
     } @else {
     <h2>{{ data.title }}</h2>
-    }
 
     <div class="landing__sub-header">
       @for (subtitle of data.subtitles; track subtitle) {
       <p>{{ subtitle }}</p>
-
       }
     </div>
+    }
   </div>
 
+  @if (!showDisplay) {
+  <ng-container [ngTemplateOutlet]="nextButton"></ng-container>
+  }
+</div>
+
+<ng-template #nextButton>
   <button
     class="landing__next"
     [class.landing__next--armed]="hoverArmed"
@@ -45,6 +57,4 @@
   >
     <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
   </button>
-</div>
-
-<div class="space"></div>
+</ng-template>

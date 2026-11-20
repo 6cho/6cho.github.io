@@ -1,8 +1,9 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
+  ViewChild,
   Input,
   NgZone,
   afterNextRender,
@@ -56,11 +57,18 @@ const GLYPHS: Record<string, string[]> = {
 /** Characters the display can flicker through. */
 const CHARSET = Object.keys(GLYPHS).filter((c) => c !== ' ');
 
-/** Dot positions in a cell's 25x25 grid: 3px squares on a 5px pitch. */
-const DOTS = Array.from({ length: 25 }, (_, i) => ({
-  x: 1 + (i % 5) * 5,
-  y: 1 + Math.floor(i / 5) * 5,
-}));
+/** Each glyph as 25 lit/unlit dots, row by row. */
+const GLYPH_BITS: Record<string, boolean[]> = Object.fromEntries(
+  Object.entries(GLYPHS).map(([c, rows]) => [c, rows.join('').split('').map((d) => d === '#')]),
+);
+
+/**
+ * Display geometry, in CSS px. A cell is a 25-unit grid at 2px per unit
+ * (whole pixels at both 1x and 1.5x): 3-unit dots on a 5-unit pitch, with a
+ * one-dot gap between cells.
+ */
+const MATRIX = { cols: 16, cell: 50, gap: 10, unit: 2, dot: 3, pitch: 5, inset: 1 };
+const COLOR = '240, 240, 240';
 
 /** Scroll-out effect tuning. */
 const SHIMMER = {
@@ -74,7 +82,9 @@ const SHIMMER = {
   /** Characters fade in from invisible to full over progress 0 -> this. */
   fadeInUntil: 0.5,
   /** Opacity of fully faded-in scrambled characters (blank dots sit at `off`). */
-  levels: { off: 0.08, noise: 0.5 },
+  // `rest` is the scramble's brightness at the top of the page: faintly
+  // visible behind the title, then it fades up toward `noise` on scroll.
+  levels: { off: 0.08, rest: 0.12, noise: 0.5 },
   /**
    * The name dims from full brightness down to the scrambled characters' level,
    * reaching it when the fade-in is this far along (0-1); after that it matches them.
@@ -91,9 +101,6 @@ const SHIMMER = {
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-/** How bright a dot is: off (blank), noise (flickering character), or name. */
-type Level = 'off' | 'noise' | 'name';
-
 /**
  * The character a cell shows at a given scroll step. Deterministic, so the same
  * scroll position always shows the same characters, forward or back.
@@ -102,77 +109,73 @@ function charAt(cell: number, step: number): string {
   let h = Math.imul(cell + 1, 0x9e3779b1) ^ Math.imul(step + 1, 0x85ebca6b);
   h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
   h ^= h >>> 13;
-  return CHARSET[(h >>> 0) % CHARSET.length];
+  // At the very top (first scroll step) the display shows only digits.
+  const set = step === 0 ? DIGITS : CHARSET;
+  return set[(h >>> 0) % set.length];
 }
 
-/** Cached dot levels per character and role, so unchanged cells keep the same array. */
-const levelCache = new Map<string, Level[]>();
-function levelsFor(char: string, lit: Level): Level[] {
-  const key = char + lit;
-  let levels = levelCache.get(key);
-  if (!levels) {
-    levels = (GLYPHS[char] ?? GLYPHS[' '])
-      .join('')
-      .split('')
-      .map((d) => (d === '#' ? lit : 'off'));
-    levelCache.set(key, levels);
-  }
-  return levels;
-}
+const DIGITS = CHARSET.filter((c) => c >= '0' && c <= '9');
 
 @Component({
   selector: 'landing',
   standalone: true,
-  imports: [],
+  imports: [NgTemplateOutlet],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
 export class LandingComponent {
   @Input() data: any = {};
 
-  readonly dots = DOTS;
+  @ViewChild('matrix') private matrix?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('header') private header?: ElementRef<HTMLElement>;
 
   /**
    * What the 16-wide display shows at rest, one character per cell, row by row.
-   * Each line must be exactly 16 characters; spaces are blank cells.
-   * The grid's bottom edge sits at 2/3 of the landing height, so the name,
-   * near the bottom rows, lands close to the visual center of the screen.
-   * Outer cells may run off the lens.
+   * Built from the page title in ngOnInit (see buildScreen): blank rows above
+   * run up past the top of the lens, two title rows sit near the screen's
+   * visual center, and blank rows below carry the grid down to ~3/4.
    */
-  readonly screen = [
-    // Extra rows above run up past the top of the circle.
-    '                ',
-    '                ',
-    '                ',
-    '                ',
-    '                ',
-    '                ',
-    '      ERIC      ',
-    '      CHO       ',
-    '                ',
-  ];
+  screen: string[] = [];
 
-  private readonly rest = this.screen.join('').split('');
-  private readonly isName = this.rest.map((c) => c !== ' ');
+  private rest: string[] = [];
+  private isName: boolean[] = [];
   /** What each cell currently shows. */
-  private readonly live = [...this.rest];
+  private live: string[] = [];
+
+  /** Blank columns right of the title block; the subtitles align to its edge. */
+  nameRightCols = 6;
+  /** Horizontal nudge (px) so odd-width titles sit centered in the lens. */
+  shift = 0;
+  /** Title width in cells. */
+  private titleCells = 4;
+  /** Wide titles center their subtitles; right-aligned ones would hit the lens edge. */
+  get centerSubtitles(): boolean {
+    return this.titleCells > 6;
+  }
+
+  @ViewChild('display') private display?: ElementRef<HTMLElement>;
+
+  /** Every landing shows the dot display unless a page opts out. */
+  get showDisplay(): boolean {
+    return this.data?.display !== false;
+  }
 
   /** Last scroll position drawn. */
   private top = -1;
 
   /** Opacity of the scrambled characters (fades them in). */
-  noiseOpacity = SHIMMER.levels.off;
+  noiseOpacity = SHIMMER.levels.rest;
   /** Opacity of the name (dims to match the scrambled characters). */
   nameOpacity = 1;
   /** Opacity of the whole display (fades it out as the hero leaves). */
   fade = 1;
 
-  /** Every cell as 25 dot levels. */
-  cells: Level[][] = this.render();
+  /** Display size in CSS px. */
+  readonly width = MATRIX.cols * MATRIX.cell + (MATRIX.cols - 1) * MATRIX.gap;
+  height = 0;
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -181,17 +184,41 @@ export class LandingComponent {
     // redraws just this component. Scroll is the only thing that changes the
     // display; there's no timer.
     afterNextRender(() => {
-      if (!this.data.display) return;
+      if (!this.showDisplay) return;
       const el: HTMLElement = this.host.nativeElement;
       const scroller = el.closest('.main-content__inner') as HTMLElement | null;
       if (!scroller) return;
 
-      const onScroll = () => this.update(scroller.scrollTop, el.clientHeight);
+      // Coalesce scroll events into at most one redraw per animation frame.
+      let queued = false;
+      const onScroll = () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          this.update(scroller.scrollTop, el.clientHeight);
+        });
+      };
+
+      // Re-size the canvas backing store if the pixel ratio changes (zoom,
+      // moving to another monitor).
+      const onResize = () => {
+        this.sizeCanvas();
+        this.draw();
+        this.fitTitle(scroller.clientWidth);
+      };
 
       this.zone.runOutsideAngular(() => {
         scroller.addEventListener('scroll', onScroll, { passive: true });
-        destroyRef.onDestroy(() => scroller.removeEventListener('scroll', onScroll));
+        window.addEventListener('resize', onResize);
+        destroyRef.onDestroy(() => {
+          scroller.removeEventListener('scroll', onScroll);
+          window.removeEventListener('resize', onResize);
+        });
       });
+      this.sizeCanvas();
+      this.draw();
+      this.fitTitle(scroller.clientWidth);
       onScroll();
     });
   }
@@ -199,6 +226,36 @@ export class LandingComponent {
   ngOnInit() {
     let title = this.data.title;
     this.data.title = title.toUpperCase();
+    this.buildScreen(this.data.title);
+  }
+
+  /**
+   * Lay the title out on the grid as a single row centered in the 16 columns,
+   * e.g. "ERIC CHO" (8 cells) or "EXPERIENCE" (10 cells).
+   */
+  private buildScreen(title: string) {
+    const cols = MATRIX.cols;
+    const blank = ' '.repeat(cols);
+    // The whole title on one line (spaces become blank cells), up to 16 cells.
+    const line = title.trim().replace(/\s+/g, ' ').slice(0, cols);
+    const width = Math.max(1, line.length);
+    const start = Math.floor((cols - width) / 2);
+    const row = (w = '') => (' '.repeat(start) + w).padEnd(cols).slice(0, cols);
+
+    // 6 rows above, a spare row, the title row, then 3 below (matches
+    // --rows-below). The title sits on the lower row, closer to center.
+    this.screen = [...Array(6).fill(blank), row(), row(line), ...Array(3).fill(blank)];
+    this.rest = this.screen.join('').split('');
+    this.isName = this.rest.map((c) => c !== ' ');
+    this.live = [...this.rest];
+    this.height = this.screen.length * MATRIX.cell + (this.screen.length - 1) * MATRIX.gap;
+
+    this.titleCells = width;
+    this.nameRightCols = cols - (start + width);
+    // The grid's center falls between columns 7 and 8; nudge odd-width titles
+    // half a cell so they read centered in the lens.
+    const pitch = MATRIX.cell + MATRIX.gap;
+    this.shift = ((cols - 1) / 2 - (start + (width - 1) / 2)) * pitch;
   }
 
   /**
@@ -228,10 +285,11 @@ export class LandingComponent {
     const next = el.nextElementSibling as HTMLElement | null;
     if (!scroller || !next) return;
 
-    // Land the section just below the screen's top edge (the 32px masked band).
+    // Land the section so its card (32px inside the section) sits just past
+    // the screen's top fade (fully visible from 96px down).
     const from = scroller.scrollTop;
     const to =
-      from + next.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 32;
+      from + next.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 64;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       scroller.scrollTop = to;
@@ -271,31 +329,131 @@ export class LandingComponent {
   private update(top: number, height: number) {
     if (top === this.top) return;
     this.top = top;
+    const prev = [this.noiseOpacity, this.nameOpacity, this.fade, this.live.join('')];
 
     const started = top >= SHIMMER.startPx;
     const p = clamp01((top - SHIMMER.startPx) / (height * SHIMMER.fullAt || 1));
     const fadeIn = started ? clamp01(p / SHIMMER.fadeInUntil) : 0;
-    const { off, noise } = SHIMMER.levels;
-    this.noiseOpacity = Math.max(off, noise * fadeIn);
+    const { rest, noise } = SHIMMER.levels;
+    // Rounded to 1/50 steps: invisible difference, far fewer style recalcs
+    // across the 2,400 dots.
+    const q = (n: number) => Math.round(n * 50) / 50;
+    this.noiseOpacity = q(rest + (noise - rest) * fadeIn);
     // Ease the name down to wherever the scramble is, meeting it at nameMatchAt.
     const match = clamp01(fadeIn / SHIMMER.nameMatchAt);
-    this.nameOpacity = 1 + (this.noiseOpacity - 1) * match;
-    this.fade = 1 - clamp01((p - SHIMMER.fadeOutFrom) / (1 - SHIMMER.fadeOutFrom));
+    this.nameOpacity = q(1 + (this.noiseOpacity - 1) * match);
+    this.fade = q(1 - clamp01((p - SHIMMER.fadeOutFrom) / (1 - SHIMMER.fadeOutFrom)));
 
     const step = Math.floor(top / SHIMMER.stepPx);
     this.live.forEach((_, i) => {
       if (this.isName[i]) return;
       this.live[i] = started ? charAt(i, step) : ' ';
     });
-    this.redraw();
+
+    // Fade is applied straight to the element (no change detection).
+    if (this.fade !== prev[2] && this.header) {
+      this.header.nativeElement.style.opacity = String(this.fade);
+    }
+    // Skip the redraw entirely when nothing visible on the matrix changed.
+    if (
+      this.noiseOpacity !== prev[0] ||
+      this.nameOpacity !== prev[1] ||
+      this.live.join('') !== prev[3]
+    ) {
+      this.draw();
+    }
   }
 
-  private redraw() {
-    this.cells = this.render();
-    this.cdr.detectChanges();
+  /**
+   * Shrink the dot display on screens too narrow for the title (phones), scaling
+   * around the title so it stays centered. Full size whenever it fits.
+   */
+  private fitTitle(screenWidth: number) {
+    const el = this.display?.nativeElement;
+    const header = this.header?.nativeElement;
+    if (!el || !header) return;
+    const pitch = MATRIX.cell + MATRIX.gap;
+    const titlePx = this.titleCells * pitch - MATRIX.gap;
+    // Title center, in the header's coordinates (lens center x, title row y).
+    const originX = this.width / 2 - this.shift;
+    const originY = 7 * pitch + MATRIX.cell / 2;
+
+    // Desktop: fit the whole title block (dots, subtitles, chevron) inside
+    // the circle aperture, title centered slightly above the circle's middle.
+    const screen = this.host.nativeElement.closest('.main-content') as HTMLElement | null;
+    if (window.innerWidth > 1000 && screen) {
+      const ringGap = 24;
+      const r = (Math.min(screen.clientWidth, screen.clientHeight) - 4 * ringGap) / 2;
+      const lift = 0.15 * r;
+      // ~320px of block below the title center; the title must fit its chord.
+      const scale = Math.min(
+        1,
+        (r - 30 + lift) / 320,
+        (2 * Math.sqrt(r * r - lift * lift) - 60) / titlePx,
+      );
+      const landingH = this.host.nativeElement.clientHeight;
+      header.style.top = `${landingH / 2 - lift - originY}px`;
+      header.style.bottom = 'auto';
+      header.style.transformOrigin = `${originX}px ${originY}px`;
+      header.style.transform = scale < 1 ? `scale(${scale})` : '';
+      el.style.transform = '';
+      header.style.setProperty('--below-lift', '0px');
+      return;
+    }
+    header.style.top = '';
+    header.style.bottom = '';
+    header.style.transform = '';
+    // Tablet / phone: shrink just the dots if the title is wider than the screen.
+    const scale = Math.min(1, (screenWidth - 48) / titlePx);
+    el.style.transformOrigin = `${originX}px ${originY}px`;
+    el.style.transform = scale < 1 ? `scale(${scale})` : '';
+    // Scaling doesn't shrink the layout box, so lift the subtitles and chevron
+    // by however much the grid below the title row shrank.
+    const lift = (this.height - originY) * (1 - scale);
+    this.header?.nativeElement.style.setProperty('--below-lift', `${lift}px`);
   }
 
-  private render(): Level[][] {
-    return this.live.map((char, i) => levelsFor(char, this.isName[i] ? 'name' : 'noise'));
+  /** Match the canvas backing store to its CSS size times the pixel ratio. */
+  private sizeCanvas() {
+    const canvas = this.matrix?.nativeElement;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(this.width * dpr);
+    canvas.height = Math.round(this.height * dpr);
+  }
+
+  /** Paint every dot. Batched into one path per brightness level. */
+  private draw() {
+    const canvas = this.matrix?.nativeElement;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+    const dpr = canvas.width / this.width;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, this.width, this.height);
+
+    const { cols, cell, gap, unit, dot, pitch, inset } = MATRIX;
+    const size = dot * unit;
+    const off = new Path2D();
+    const noise = new Path2D();
+    const name = new Path2D();
+
+    this.live.forEach((char, c) => {
+      const bits = GLYPH_BITS[char] ?? GLYPH_BITS[' '];
+      const ox = (c % cols) * (cell + gap);
+      const oy = Math.floor(c / cols) * (cell + gap);
+      const lit = this.isName[c] ? name : noise;
+      for (let i = 0; i < 25; i++) {
+        const x = ox + (inset + (i % 5) * pitch) * unit;
+        const y = oy + (inset + Math.floor(i / 5) * pitch) * unit;
+        (bits[i] ? lit : off).rect(x, y, size, size);
+      }
+    });
+
+    ctx.fillStyle = `rgba(${COLOR}, ${SHIMMER.levels.off})`;
+    ctx.fill(off);
+    ctx.fillStyle = `rgba(${COLOR}, ${this.noiseOpacity})`;
+    ctx.fill(noise);
+    ctx.fillStyle = `rgba(${COLOR}, ${this.nameOpacity})`;
+    ctx.fill(name);
   }
 }

@@ -22,6 +22,17 @@
     }
   }
 
+  // Page titles (EDUCATION, EXPERIENCE...) scale down to fit a phone screen.
+  @media (max-width: 768px) {
+    .landing__header h2 {
+      font-size: clamp(32px, 11vw, 64px);
+      letter-spacing: -1px;
+    }
+  }
+
+  // Desktop: the circle aperture (--aperture, set by main-content) can be
+  // smaller than the screen's height, so place the title block relative to
+  // the circle rather than the screen. Same result as before on a square screen.
   // The dot display overflows on purpose; the circular screen clips it
   // (main-content's scroll area hides horizontal overflow).
   position: relative;
@@ -51,41 +62,22 @@
       }
     }
 
+    // Fading layer gets its own compositor layer so opacity changes are cheap.
+    &__header--display {
+      will-change: opacity;
+    }
+
     // Dot-matrix display, sitting where the text title was. It's wider than the
     // lens on purpose; the host clips whatever runs off.
     &__display {
-      display: grid;
-      grid-template-columns: repeat(16, 50px);
-      // Exactly one dot space (dots sit on a 10px pitch inside a cell), so
-      // the whole display reads as one even dot field with a blank dot
-      // column/row between characters.
-      gap: 10px;
       // Padding, not margin: the subtitles hang off the header's bottom edge,
       // and a child's bottom margin collapses out of it.
       padding-bottom: 20px;
 
-      // 50px over a 25-unit grid = 2 screen px per unit at 100%, 3 at 150%,
-      // so every dot lands on whole pixels on both.
-      &-square {
+      // Size comes from the component (16 cells x 50px + 10px gaps). Cells are
+      // 2px per grid unit, so dots land on whole pixels at 1x and 1.5x.
+      &-canvas {
         display: block;
-        width: 50px;
-        height: 50px;
-        fill: rgb(240, 240, 240);
-
-        // Three levels: blank dots, flickering characters, name.
-        .off {
-          opacity: 0.08;
-        }
-
-        // Scroll-driven, set from the component (see SHIMMER in landing.component.ts):
-        // the scramble fades in while the name dims to match it.
-        .noise {
-          opacity: var(--noise-opacity, 0.08);
-        }
-
-        .name {
-          opacity: var(--name-opacity, 1);
-        }
       }
     }
 
@@ -117,8 +109,8 @@
       // and chevron warm to orange.
       &--armed:hover,
       &:focus-visible {
-        border-color: rgb(255, 100, 73);
-        color: rgb(255, 100, 73);
+        border-color: rgb(var(--accent-rgb));
+        color: rgb(var(--accent-rgb));
         animation-play-state: paused;
       }
     }
@@ -141,23 +133,58 @@
       width: 100%;
     }
 
-    // With the display: the grid fills the top 2/3 of the landing area, its
-    // bottom edge on the 2/3 line. Rows above run off the top of the lens.
+    // With the display: the name sits just above the screen's center, and the
+    // grid extends from above the lens down to ~3/4 of the screen height.
+    // A grid row is 60px (50px cell + 10px gap).
     &__header--display {
+      // Blank rows under CHO in the `screen` layout (landing.component.ts).
+      --rows-below: 3;
       position: absolute;
-      // Bottom of the grid (above its 20px padding) one row (50px cell + 10px
-      // gap) above the 2/3 line, lifting the name toward the screen's center.
-      bottom: calc(100% / 3 - 20px + 60px);
+      // Anchors the grid so CHO's bottom edge stays put however many rows sit
+      // below it: each extra row pushes the grid's bottom 60px further down.
+      bottom: calc(100% / 3 + 100px - var(--rows-below) * 60px);
       // Centered on a whole pixel: the grid is 16 x 50px + 15 x 10px = 950px.
+      // --shift nudges odd-width titles half a cell (set by the component).
       left: 50%;
-      margin-left: -475px;
+      margin-left: calc(-475px + var(--shift, 0px));
 
-      // Keep the subtitles under the name's right edge
-      // (the name ends 6 cells in from the right: 6 x (50px cell + 10px gap)).
+      // Subtitles and chevron stack under the grid, so the chevron always
+      // clears however many (possibly wrapped) subtitle lines there are.
+      .landing__below {
+        position: absolute;
+        top: calc(100% - var(--below-lift, 0px));
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+
+      // Narrow titles: subtitles right-aligned to the title's edge
+      // (--name-right blank cells to its right, 60px per cell).
       .landing__sub-header {
-        right: calc(6 * 60px);
+        position: static;
+        align-self: flex-end;
         width: max-content;
+        max-width: min(560px, 100vw - 96px);
+        margin-right: calc(var(--name-right, 6) * 60px);
         padding-right: 0;
+      }
+
+      // Wide titles: subtitles centered under the title (lens center).
+      .landing__below--center .landing__sub-header {
+        align-self: center;
+        margin-right: 0;
+        text-align: center;
+        translate: calc(-1 * var(--shift, 0px)) 0;
+      }
+
+      // Chevron at the lens center, undoing the grid's half-cell nudge.
+      .landing__next {
+        position: static;
+        margin-left: 0;
+        translate: calc(-1 * var(--shift, 0px)) 0;
       }
     }
   }
