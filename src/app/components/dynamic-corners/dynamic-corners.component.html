@@ -1,6 +1,7 @@
-<div class="dynamic-corners {{ scrolled ? 'scrolled' : '' }}">
-  <div class="dynamic-corners__corner corner-1"></div>
-  <div class="dynamic-corners__corner corner-2"></div>
-  <div class="dynamic-corners__corner corner-3"></div>
-  <div class="dynamic-corners__corner corner-4"></div>
+<!-- Four corner pieces: dots at rest, brackets in content, diagonal lines during page changes. -->
+<div class="corners" [class.corners--open]="scrolled" aria-hidden="true">
+  <i class="corner corner--tl"><span class="corner__line"></span></i>
+  <i class="corner corner--tr"><span class="corner__line"></span></i>
+  <i class="corner corner--br"><span class="corner__line"></span></i>
+  <i class="corner corner--bl"><span class="corner__line"></span></i>
 </div>

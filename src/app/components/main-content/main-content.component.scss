@@ -8,14 +8,21 @@
   .main-content {
     // Fills the device's screen slot (set on the app host as --screen) so it
     // lines up with the rail. Content-box: subtract 2 x (32px pad + 8px ring).
-    height: calc(var(--screen, calc(80vh - 40px)) - 80px);
-    width: calc(var(--screen, calc(80vh - 40px)) - 80px);
+    height: calc(var(--screen-h, calc(80vh - 40px)) - 80px);
+    width: calc(var(--screen-w, calc(80vh - 40px)) - 80px);
     position: relative;
     display: flex;
-    transition: all 0.3s ease-in-out;
+    // The screen is always a rounded rectangle; the circle is an aperture inside
+    // it (see __inner / __ring). --morph times the aperture opening.
+    --morph: 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    // Shutter easing, shared with the corner pieces (dynamic-corners).
+    --shutter-in: cubic-bezier(0.55, 0, 0.75, 0.35);
+    --shutter-out: cubic-bezier(0.2, 0.7, 0.25, 1);
     margin: auto;
-    border-radius: 50%;
-    box-shadow: 17px 17px 34px rgba(40, 70, 55, 0.22), -17px -17px 34px #ffffff77;
+    border-radius: 24px;
+    box-shadow: 14px 14px 28px rgba(var(--shade-rgb), 0.22), -14px -14px 28px rgba(var(--hi-rgb), 0.47);
+    // Keep the morph's repaints inside the screen.
+    contain: layout paint;
     overflow: hidden;
     // 40px minus the 8px ring, so the outer size is unchanged. The scroll area
     // stretches back over this padding (see __inner) so content can reach the
@@ -31,7 +38,8 @@
     &__glass {
       position: absolute;
       inset: 0;
-      border-radius: inherit;
+      // Concentric with the screen: 24px outer - 8px ring = 16px.
+      border-radius: 16px;
       pointer-events: none;
       z-index: 50;
       // Glare follows the body's top-left light source, falling off to the bottom-right.
@@ -52,45 +60,6 @@
         inset 0 8px 20px rgba(0, 0, 0, 0.45);
     }
 
-    &__status {
-      position: absolute;
-      top: 12px;
-      left: 88px;
-      right: 88px;
-      z-index: 60;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: rgb(120, 120, 120);
-      opacity: 0;
-      transform: translateY(-6px);
-      transition: 0.4s ease-in-out;
-
-      &-page {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: rgb(200, 200, 200);
-      }
-
-      &-led {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: rgb(255, 80, 50);
-        box-shadow: 0 0 8px rgba(255, 80, 50, 0.8);
-      }
-    }
-
-    &.scrolled .main-content__status {
-      opacity: 1;
-      transform: none;
-      transition-delay: 0.2s;
-    }
-
     &__inner {
       counter-reset: section;
       // Fill the whole screen, edge to edge, so the circle itself is the clip.
@@ -104,7 +73,6 @@
       overflow-y: scroll;
       -ms-overflow-style: none; /* IE and Edge */
       scrollbar-width: none; /* Firefox */
-      transition: 0.5s ease-in-out;
       position: relative;
 
       &::-webkit-scrollbar {
@@ -113,25 +81,17 @@
     }
 
     &.scrolled {
-      border-radius: 24px;
-      box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
-      transition: all 0.5s ease-in-out;
-
-      // The glass sits inside the 8px ring, so its corner is concentric:
-      // 24px outer - 8px ring = 16px.
-      .main-content__glass {
-        border-radius: 16px;
-      }
-
-      // Once open, keep the hard top/bottom edge the padding used to give.
+      // Once open, content fades out toward all four edges, fully gone before
+      // it reaches the corner brackets (which sit 24-72px in). The vertical and
+      // horizontal fades are intersected so the corners fade both ways.
       .main-content__inner {
-        mask-image: linear-gradient(
-          to bottom,
-          transparent var(--pad),
-          #000 var(--pad),
-          #000 calc(100% - var(--pad)),
-          transparent calc(100% - var(--pad))
-        );
+        --fade-gone: 24px;
+        --fade-full: 96px;
+        $fade: transparent var(--fade-gone), #000 var(--fade-full),
+          #000 calc(100% - var(--fade-full)), transparent calc(100% - var(--fade-gone));
+        mask-image: linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
+        -webkit-mask-composite: source-in;
+        mask-composite: intersect;
       }
 
       .main-content {
@@ -143,136 +103,168 @@
   }
 }
 
-@media (max-width: 1200px) {
-  :host {
-    margin-left: auto;
-    display: flex;
-    height: calc(100%);
-    width: calc(100%);
-    max-height: 100%;
+// Desktop: the circle lives inside the square screen as an aperture. At rest,
+// content is clipped to the circle and a thin gray ring marks its edge; on
+// scroll the aperture opens out past the corners and the ring expands and
+// fades, revealing the full screen.
+@media (min-width: 1001px) {
+  :host .main-content {
+    // The visible screen (inside the 8px ring) is 16px smaller than --screen-*.
+    // The gray ring (--aperture, its diameter) sits --ring-gap in from the
+    // screen's narrow side, and the content is clipped another --ring-gap
+    // inside the ring, so the blank space on both sides of the ring matches.
+    --ring-gap: 24px;
+    --aperture: calc(min(var(--screen-w), var(--screen-h)) - 16px - 2 * var(--ring-gap));
 
-    .main-content {
-      height: calc(100vw - 250px - 100px);
-      width: calc(100vw - 250px - 100px);
-      position: relative;
-      display: flex;
-      transition: all 0.3s ease-in-out;
-      margin: auto;
+    // Soft aperture: content is fully visible up to 3 x --ring-gap inside the
+    // ring, fades across a short band, and is fully clear --ring-gap before
+    // the ring, so nothing ever touches the edge, even mid-animation.
+    // --reveal (registered in styles.scss so it animates) is the ring radius.
+    .main-content__inner {
+      --reveal: calc(var(--aperture) / 2);
+      $soft: radial-gradient(
+        circle at 50% 50%,
+        #000 calc(var(--reveal) - 3 * var(--ring-gap)),
+        transparent calc(var(--reveal) - var(--ring-gap))
+      );
+      -webkit-mask-image: $soft;
+      mask-image: $soft;
+      transition: --reveal var(--morph), opacity 0.22s ease;
+    }
+
+    // Open: the soft edge grows past the corners, then the usual edge fades
+    // take over (intersected with it).
+    &.scrolled .main-content__inner {
+      --reveal: calc((var(--screen-w) + var(--screen-h)) / 2 + 2 * var(--ring-gap));
+      $soft: radial-gradient(
+        circle at 50% 50%,
+        #000 calc(var(--reveal) - 3 * var(--ring-gap)),
+        transparent calc(var(--reveal) - var(--ring-gap))
+      );
+      $fade: transparent var(--fade-gone), #000 var(--fade-full),
+        #000 calc(100% - var(--fade-full)), transparent calc(100% - var(--fade-gone));
+      -webkit-mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
+      mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
+      -webkit-mask-composite: source-in;
+      mask-composite: intersect;
+    }
+
+    .main-content__ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--aperture);
+      height: var(--aperture);
+      box-sizing: border-box;
       border-radius: 50%;
-      box-shadow: 8px 8px 16px rgba(40, 70, 55, 0.28), -8px -8px 16px #ffffff99;
-      overflow: hidden;
-      --pad: 22px;
+      border: 3px solid rgba(150, 150, 150, 0.45); // same weight as the corner brackets
+      pointer-events: none;
+      z-index: 40;
+      transform: translate(-50%, -50%);
+      transition: transform var(--morph), opacity 0.45s ease;
+    }
 
-      &__inner {
-        width: calc(100% + 2 * var(--pad));
-        height: calc(100% + 2 * var(--pad));
-        border-radius: 0;
-        overflow-y: scroll;
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-        transition: 0.5s ease-in-out;
-        position: relative;
-
-        &::-webkit-scrollbar {
-          display: none;
-        }
-      }
-
-      &.scrolled {
-        border-radius: 24px;
-        box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
-        transition: all 0.5s ease-in-out;
-        height: calc(100% - 144px);
-
-        .main-content {
-          &__arrow-container {
-            bottom: 15px;
-          }
-        }
-      }
+    &.scrolled .main-content__ring {
+      transform: translate(-50%, -50%) scale(1.6);
+      opacity: 0;
     }
   }
 }
 
-@media (max-width: 992px) {
-  :host {
-    margin-left: auto;
-    display: flex;
-    height: calc(100%);
-    width: calc(100%);
-    max-height: 100%;
+// Page-change shutter (desktop): the circle irises shut and reopens. Classes on
+// <html>, toggled by the nav and this component:
+//   page-leaving   circle shrinks to a point, fading out by half size (0.48s)
+//   page-entering  new page irises open, fading in from half size (0.65s)
+//   page-instant   back/forward: close without animating, then open as usual
+// The corner pieces (dynamic-corners) animate along with it.
+@media (min-width: 1001px) {
+  :host-context(.page-leaving) .main-content {
+    .main-content__inner {
+      --reveal: 0px;
+      opacity: 0;
+      transition: --reveal 0.48s var(--shutter-in), opacity 0.4s ease-out;
+    }
 
-    .main-content {
-      max-height: calc(90vw);
-      max-width: calc(90vw);
-      height: calc(80vh - 140px);
-      width: calc(80vh - 140px);
-      position: relative;
-      display: flex;
-      transition: all 0.3s ease-in-out;
-      margin: auto;
-      border-radius: 50%;
-      box-shadow: 17px 17px 34px rgba(40, 70, 55, 0.22), -17px -17px 34px #ffffff77;
-      overflow: hidden;
-      --pad: 22px;
+    .main-content__ring {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.02);
+      transition: transform 0.48s var(--shutter-in), opacity 0.4s ease-out;
+    }
+  }
 
-      &__inner {
-        width: calc(100% + 2 * var(--pad));
-        height: calc(100% + 2 * var(--pad));
-        border-radius: 0;
-        overflow-y: scroll;
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-        transition: 0.5s ease-in-out;
-        position: relative;
+  :host-context(.page-entering) .main-content {
+    .main-content__inner {
+      transition: --reveal 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
+    }
 
-        &::-webkit-scrollbar {
-          display: none;
-        }
-      }
+    .main-content__ring {
+      transition: transform 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
+    }
+  }
 
-      &.scrolled {
-        border-radius: 24px;
-        box-shadow: 10px 10px 20px rgba(40, 70, 55, 0.22), -10px -10px 20px #ffffff77;
-        transition: all 0.5s ease-in-out;
-
-        .main-content {
-          &__arrow-container {
-            bottom: 15px;
-          }
-        }
-      }
+  :host-context(.page-instant) .main-content {
+    .main-content__inner,
+    .main-content__ring {
+      transition: none;
     }
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
+  :host .main-content__ring {
+    display: none;
+  }
+}
+
+
+// Phones and small tablets: the screen fills the space above the control
+// strip as a rounded rectangle; a circle would waste most of a tall display.
+@media (max-width: 1000px) {
   :host {
-    height: calc(100% - 56px - 72px);
+    // The screen sizes itself to the space above the control strip.
+    container-type: size;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
 
-    .main-content__status {
-      display: none;
-    }
-
-    .main-content {
-      max-height: none;
-      max-width: none;
-      height: auto;
-      width: auto;
-      margin: 8px;
+    .main-content,
+    .main-content.scrolled {
+      --pad: 16px;
+      width: calc(100cqw - 2 * var(--pad) - 16px);
+      height: calc(100cqh - 2 * var(--pad) - 16px);
       border-radius: 24px;
-      box-shadow: 4px 4px 8px rgba(40, 70, 55, 0.28), -4px -4px 8px #ffffff99;
-      --pad: 12px;
+      box-shadow: 4px 4px 10px rgba(var(--shade-rgb), 0.28), -4px -4px 10px rgba(var(--hi-rgb), 0.6);
 
-      &.scrolled {
-        box-shadow: 4px 4px 8px rgba(40, 70, 55, 0.28), -4px -4px 8px #ffffff99;
-
-        .main-content {
-          &__arrow-container {
-            bottom: 15px;
-          }
-        }
+      .main-content__glass {
+        border-radius: 16px;
       }
     }
+
+    // Tighter edge fade to suit the smaller screen. The sides fade much less:
+    // phone cards run close to the edge, and their text shouldn't dim.
+    .main-content.scrolled .main-content__inner {
+      mask-image: linear-gradient(
+          to bottom,
+          transparent 14px,
+          #000 56px,
+          #000 calc(100% - 56px),
+          transparent calc(100% - 14px)
+        ),
+        linear-gradient(to right, transparent 4px, #000 14px, #000 calc(100% - 14px), transparent calc(100% - 4px));
+    }
   }
+}
+
+// Dark mode: a matte screen. Next to the dark indigo shell the white glare and
+// silver bezel line read as too glossy, so both drop back.
+:host-context(.theme-dark) .main-content__glass {
+  background: radial-gradient(
+      110% 80% at 12% 0%,
+      rgba(255, 255, 255, 0.035),
+      transparent 50%
+    ),
+    linear-gradient(135deg, transparent 45%, rgba(0, 0, 0, 0.18));
+  box-shadow: inset 0 0 0 3px #3a3c56, inset 0 0 0 4px #24253a,
+    inset 0 0 0 5px rgba(0, 0, 0, 0.55),
+    inset 0 8px 20px rgba(0, 0, 0, 0.45);
 }

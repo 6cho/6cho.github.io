@@ -1,20 +1,49 @@
-import {
+﻿import {
+  ChangeDetectorRef,
   Component,
-  DestroyRef,
   ElementRef,
   EventEmitter,
   HostBinding,
-  HostListener,
   Input,
+  NgZone,
   Output,
+  PLATFORM_ID,
   SimpleChanges,
   ViewChild,
-  afterNextRender,
   inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+} from '@angular/router';
+
+/** On <html> while the screen's content is faded out for a page change. */
+export const PAGE_LEAVING = 'page-leaving';
+/** Hide without the fade-out (back/forward navigation). */
+const PAGE_INSTANT = 'page-instant';
+/** On <html> while the new page opens (desktop shutter reopening). */
+const PAGE_ENTERING = 'page-entering';
+/** Must match the fade duration in styles.scss (tablet / phone). */
+export const PAGE_FADE_MS = 220;
+/** Must match the shutter close in main-content.component.scss (desktop). */
+export const SHUTTER_CLOSE_MS = 480;
+/** Shutter reopen, including the brackets fading out. */
+const SHUTTER_OPEN_MS = 850;
+/**
+ * When to swap pages. The content is fully faded by ~400ms (the circle is still
+ * closing, unseen), so swapping here leaves ~0.2s of blank screen before the
+ * new page fades in.
+ */
+const SHUTTER_SWAP_MS = 440;
+
+/** How long to wait for the current page to leave before navigating. */
+export function pageLeaveMs(): number {
+  return window.innerWidth > 1000 ? SHUTTER_SWAP_MS : PAGE_FADE_MS;
+}
 import { DynamicCornersComponent } from '../dynamic-corners/dynamic-corners.component';
 
 @Component({
@@ -32,60 +61,62 @@ export class MainContentComponent {
 
   @ViewChild('innerContent') innerContent!: ElementRef;
 
-  /** Status bar readouts. */
-  page = 'HOME';
-  percent = '000';
-  time = '--:--';
-
   private readonly router = inject(Router);
 
-  constructor() {
-    this.router.events
-      .pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(() => {
-        const segment = this.router.url.split('/').filter(Boolean).pop();
-        this.page = (segment ?? 'home').toUpperCase();
-      });
+  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private enterTimer?: ReturnType<typeof setTimeout>;
 
-    // Clock only runs in the browser so prerendering isn't held open.
-    const destroyRef = inject(DestroyRef);
-    afterNextRender(() => {
-      const tick = () =>
-        (this.time = new Intl.DateTimeFormat('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZone: 'America/New_York',
-        }).format(new Date()));
-      tick();
-      const id = setInterval(tick, 15000);
-      destroyRef.onDestroy(() => clearInterval(id));
-    });
-  }
-
-  /** Last scroll position this component reported up via scrollChange. */
-  private lastEmitted = 0;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['scroll'] && changes['scroll'].previousValue) {
-      const value = changes['scroll'].currentValue;
-      this.scroll = value;
-      // Only apply positions set from outside (e.g. the nav resetting to 0).
-      // Writing back our own echoed value would cancel smooth scrolling.
-      if (value !== this.lastEmitted) {
-        this.innerContent.nativeElement.scrollTop = value;
-      }
+    // Positions set from outside (e.g. the nav resetting to 0).
+    if (changes['scroll'] && !changes['scroll'].firstChange && this.innerContent) {
+      this.innerContent.nativeElement.scrollTop = changes['scroll'].currentValue;
     }
   }
 
-  @HostListener('window:scroll', ['$event']) // for window scroll events
-  onScroll(event: any) {
-    const el = this.innerContent.nativeElement;
-    const max = el.scrollHeight - el.clientHeight;
-    this.scroll = el.scrollTop;
-    this.scrolled = this.scroll >= 50;
-    const pct = max > 0 ? Math.round((this.scroll / max) * 100) : 0;
-    this.percent = String(Math.min(100, pct)).padStart(3, '0');
-    this.lastEmitted = this.scroll;
-    this.scrollChange.emit(this.scroll);
+  ngAfterViewInit() {
+    const el: HTMLElement = this.innerContent.nativeElement;
+    // Scroll is handled outside Angular's zone: a scroll event no longer
+    // re-checks the whole app (including the 2,400-dot display). This view is
+    // only re-rendered when something it shows actually changes.
+    this.zone.runOutsideAngular(() => {
+      el.addEventListener('scroll', () => this.onScroll(), { passive: true });
+    });
+    // Page changes fade the screen's content. Nav keys fade it out first (see
+    // NavigationComponent); back/forward just hide it instantly. Either way the
+    // new page starts at the top and fades in once it has rendered.
+    if (!isPlatformBrowser(this.platformId)) return;
+    const root = document.documentElement;
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationStart && !root.classList.contains(PAGE_LEAVING)) {
+        root.classList.add(PAGE_LEAVING, PAGE_INSTANT);
+      }
+      if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) {
+        el.scrollTop = 0;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            root.classList.remove(PAGE_LEAVING, PAGE_INSTANT);
+            root.classList.add(PAGE_ENTERING);
+            clearTimeout(this.enterTimer);
+            this.enterTimer = setTimeout(() => root.classList.remove(PAGE_ENTERING), SHUTTER_OPEN_MS);
+          }),
+        );
+      }
+    });
+  }
+
+  private onScroll() {
+    const top = (this.innerContent.nativeElement as HTMLElement).scrollTop;
+    this.scroll = top;
+
+    // Hysteresis: open at 50px, only close again near the top, so scrolling
+    // around the threshold doesn't restart the morph back and forth.
+    const scrolled = this.scrolled ? top > 20 : top >= 50;
+    if (scrolled !== this.scrolled) {
+      this.scrolled = scrolled;
+      this.cdr.detectChanges();
+    }
   }
 }

@@ -1,129 +1,263 @@
+﻿// The screen's four corner pieces: one element per corner that morphs between
+// a dot and a bracket and travels in and out with the page-change shutter.
+//
+// Forms:
+//   dot       at rest, top of a page
+//   bracket   scrolled into content, and throughout a page change
+// Positions:
+//   home      --inset from the screen edges (never further out)
+//   closed    a small square at the center, during page-leaving (desktop)
+
+$bracket-color: rgb(150, 150, 150);
+$dot-color: rgba(235, 235, 240, 0.9);
+
 :host {
-  .dynamic-corners {
-    &__corner {
-      border: 3px solid rgb(150, 150, 150);
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      transition: 0.3s ease-in-out;
-      z-index: 100;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 55;
 
-      &.corner-1 {
-        top: 18%;
-        left: 18%;
-        border-right: none;
-        border-bottom: none;
-      }
+  // Desktop sizes; phones / tablets override below.
+  --inset: 24px;
+  --bracket: 48px;
+  --stroke: 3px;
+  --dot: 6px;
+}
 
-      &.corner-2 {
-        top: 18%;
-        right: 18%;
-        border-left: none;
-        border-bottom: none;
-      }
+.corners {
+  position: absolute;
+  inset: var(--inset);
+}
 
-      &.corner-3 {
-        bottom: 18%;
-        right: 18%;
-        border-left: none;
-        border-top: none;
-      }
+// Each corner is two arms (::before horizontal, ::after vertical) anchored at
+// the corner point. As a dot both arms are short, thick and round, so they
+// overlap into one dot; as a bracket they stretch out long and thin. Only the
+// arms ever exist, so nothing else shows mid-morph.
+.corner {
+  position: absolute;
+  width: 0;
+  height: 0;
 
-      &.corner-4 {
-        bottom: 18%;
-        left: 18%;
-        border-right: none;
-        border-top: none;
-      }
+  // Dot form.
+  --len: var(--dot);
+  --th: var(--dot);
+  --round: 999px;
+  --color: #{$dot-color};
+  --morph-t: 0.4s;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    background: var(--color);
+    border-radius: var(--round);
+    transition: width var(--morph-t) var(--shutter-out, ease-out),
+      height var(--morph-t) var(--shutter-out, ease-out),
+      border-radius var(--morph-t) ease, background-color var(--morph-t) ease;
+  }
+
+  // Horizontal arm.
+  &::before {
+    width: var(--len);
+    height: var(--th);
+  }
+
+  // Vertical arm.
+  &::after {
+    width: var(--th);
+    height: var(--len);
+  }
+
+  &--tl {
+    top: 0;
+    left: 0;
+
+    &::before,
+    &::after {
+      top: 0;
+      left: 0;
     }
   }
-  .scrolled {
-    .dynamic-corners {
-      &__corner {
-        width: 48px;
-        height: 48px;
-        transition: 0.6s ease-in-out;
 
-        &.corner-1 {
-          top: 24px;
-          left: 24px;
-        }
+  &--tr {
+    top: 0;
+    right: 0;
 
-        &.corner-2 {
-          top: 24px;
-          right: 24px;
-        }
+    &::before,
+    &::after {
+      top: 0;
+      right: 0;
+    }
+  }
 
-        &.corner-3 {
-          bottom: 24px;
-          right: 24px;
-        }
+  &--br {
+    bottom: 0;
+    right: 0;
 
-        &.corner-4 {
-          bottom: 24px;
-          left: 24px;
-        }
-      }
+    &::before,
+    &::after {
+      bottom: 0;
+      right: 0;
+    }
+  }
+
+  &--bl {
+    bottom: 0;
+    left: 0;
+
+    &::before,
+    &::after {
+      bottom: 0;
+      left: 0;
     }
   }
 }
 
-@media (max-width: 768px) {
+// Bracket form: open toward the center. Used when scrolled and during page changes.
+@mixin bracket {
+  --len: var(--bracket);
+  --th: var(--stroke);
+  --round: 0px;
+  --color: #{$bracket-color};
+}
+
+.corners--open .corner {
+  @include bracket;
+}
+
+// Desktop: at rest the dots sit just outside the gray ring, on the diagonals
+// (--d = ring radius + 4 x --ring-gap, along 45 degrees; --aperture and
+// --ring-gap come from main-content). When the screen opens, they're pulled
+// out to the corners with the circle, turning into brackets on the way.
+@media (min-width: 1001px) {
+  .corners {
+    --d: calc((var(--aperture, 600px) / 2 + 4 * var(--ring-gap, 24px)) * 0.7071);
+    // Never further out than the bracket position, even on small screens.
+    inset: max(var(--inset), calc(50% - var(--d)));
+    transition: inset var(--morph, 0.6s ease);
+  }
+
+  .corners--open {
+    inset: var(--inset);
+  }
+}
+// Page change (desktop only; phones / tablets just fade the content).
+//   close  each corner becomes a dot at its resting spot; as the circle
+//          shrinks, the dot stretches into a diagonal line toward the center,
+//          trailing just behind the circle's edge
+//   open   as the circle expands, the lines retract into the corners as if
+//          pulling it open, then settle back into dots
+@media (min-width: 1001px) {
+  // The diagonal line: the dot itself, stretched. At rest it's an exact copy
+  // of the dot (hidden); during a page change the real dot hides and the line
+  // takes over, stretching toward the center while it thins and dims to the
+  // ring's weight and color, then contracting back into the white dot.
+  // It reaches 64px past the ring (the dot sits 4 x --ring-gap outside it).
+  .corner__line {
+    --lw: var(--dot);
+    --lt: var(--dot);
+    --lc: #{$dot-color};
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--lw);
+    height: var(--lt);
+    border-radius: 999px;
+    background: var(--lc);
+    transform-origin: 0 0;
+    // Rotate toward the center, then center the line on the dot's center.
+    transform: translate(var(--ox), var(--oy)) rotate(var(--angle))
+      translate(calc(var(--lt) / -2), calc(var(--lt) / -2));
+    opacity: 0;
+  }
+
+  // Dot centers (from each corner point) and the angle toward the center.
+  .corner--tl .corner__line {
+    --ox: calc(var(--dot) / 2);
+    --oy: calc(var(--dot) / 2);
+    --angle: 45deg;
+  }
+
+  .corner--tr .corner__line {
+    --ox: calc(var(--dot) / -2);
+    --oy: calc(var(--dot) / 2);
+    --angle: 135deg;
+  }
+
+  .corner--br .corner__line {
+    --ox: calc(var(--dot) / -2);
+    --oy: calc(var(--dot) / -2);
+    --angle: -135deg;
+  }
+
+  .corner--bl .corner__line {
+    --ox: calc(var(--dot) / 2);
+    --oy: calc(var(--dot) / -2);
+    --angle: -45deg;
+  }
+
+  :host-context(.page-leaving),
+  :host-context(.page-entering) {
+    // Dots at their resting spot, whatever form they were in.
+    .corners {
+      inset: max(var(--inset), calc(50% - var(--d)));
+    }
+
+    .corner {
+      --len: var(--dot);
+      --th: var(--dot);
+      --round: 999px;
+      --color: #{$dot-color};
+      --morph-t: 0.2s;
+
+      // The line stands in for the dot for the whole page change.
+      &::before,
+      &::after {
+        opacity: 0;
+      }
+    }
+
+    .corner__line {
+      opacity: 1;
+    }
+  }
+
+  // Close: stretch in, trailing just behind the circle's edge, thinning and
+  // dimming to match the ring.
+  :host-context(.page-leaving) {
+    .corners {
+      transition: inset 0.25s var(--shutter-out);
+    }
+
+    .corner__line {
+      --lw: calc(4 * var(--ring-gap, 24px) + 64px);
+      --lt: var(--stroke); // bracket weight, like the ring
+      --lc: rgba(150, 150, 150, 0.45);
+      // Ends at ~0.4s, before the page swaps (SHUTTER_SWAP_MS = 440ms).
+      transition: width 0.36s var(--shutter-in) 0.04s, height 0.3s ease 0.04s,
+        transform 0.3s ease 0.04s, background-color 0.3s ease 0.04s;
+    }
+  }
+
+  // Open: contract ahead of the expanding circle, pulling it open, and
+  // brighten back into the white dot.
+  :host-context(.page-entering) .corner__line {
+    transition: width 0.6s var(--shutter-out), height 0.45s ease 0.15s,
+      transform 0.45s ease 0.15s, background-color 0.45s ease 0.15s;
+  }
+  :host-context(.page-instant) {
+    .corners,
+    .corner__line {
+      transition: none;
+    }
+  }
+}
+// Phones / tablets: tighter corners on the full-height screen.
+@media (max-width: 1000px) {
   :host {
-    .dynamic-corners {
-      &__corner {
-        border-width: 2px;
-        width: 24px;
-        height: 24px;
-
-        &.corner-1 {
-          top: 10vw;
-          left: 10vw;
-        }
-
-        &.corner-2 {
-          top: 10vw;
-          right: 10vw;
-        }
-
-        &.corner-3 {
-          bottom: 10vw;
-          right: 10vw;
-        }
-
-        &.corner-4 {
-          bottom: 10vw;
-          left: 10vw;
-        }
-      }
-    }
-    .scrolled {
-      .dynamic-corners {
-        &__corner {
-          width: 16px;
-          height: 16px;
-
-          &.corner-1 {
-            top: 16px;
-            left: 16px;
-          }
-
-          &.corner-2 {
-            top: 16px;
-            right: 16px;
-          }
-
-          &.corner-3 {
-            bottom: 16px;
-            right: 16px;
-          }
-
-          &.corner-4 {
-            bottom: 16px;
-            left: 16px;
-          }
-        }
-      }
-    }
+    --inset: 16px;
+    --bracket: 22px;
+    --stroke: 2px;
+    --dot: 5px;
   }
 }
