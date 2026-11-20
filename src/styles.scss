@@ -1,14 +1,54 @@
 // Frosted-sage hardware palette (retro translucent electronics).
 :root {
   --bg: #f3efe4; // warm off-white cream the device sits on
-  --shell: #b7d1bf; // frosted sage plastic
-  --shell-light: #d8e9dd; // where light passes through thin plastic
-  --shell-deep: #9cbda8; // denser, thicker plastic
+  --shell: #9dcdad; // frosted sage plastic
+  --shell-light: #c2e0cc; // where light passes through thin plastic
+  --shell-deep: #7fb994; // denser, thicker plastic
   --shell-hi: rgba(255, 255, 255, 0.8); // light catching the plastic
-  --shell-lo: rgba(45, 95, 68, 0.32); // shadow tinted by the plastic
+  --shell-lo: rgba(35, 95, 60, 0.34); // shadow tinted by the plastic
   --lcd: #e8eadf; // warm, pale LCD
   --lcd-ink: #1f2521; // LCD segments and type
-  --accent: rgb(255, 100, 73);
+
+  // Accents (orange) as "r, g, b" so components can add alpha.
+  --accent-rgb: 255, 100, 73;
+  --accent-strong-rgb: 255, 80, 50;
+  --accent-deep-rgb: 220, 64, 36;
+  --accent: rgb(var(--accent-rgb));
+
+  // Plastic lighting: highlight, inner glow, shadow, tint.
+  --hi-rgb: 255, 255, 255;
+  --glow-rgb: 235, 250, 240;
+  --shade-rgb: 40, 70, 55;
+  --tint-rgb: 45, 90, 64;
+
+  // Type printed on the shell.
+  --ink: #000;
+  --ink-soft: #17241c;
+}
+
+// Dark mode: frosted indigo shell, vibrant blue accents, night backdrop.
+// Toggled by the switch in the rail (class on <html>, saved in localStorage).
+:root.theme-dark {
+  --bg: #0d0f1d;
+  --shell: #282442;
+  --shell-light: #353056;
+  --shell-deep: #1d1a32;
+  --shell-hi: rgba(146, 132, 206, 0.28);
+  --shell-lo: rgba(4, 5, 20, 0.55);
+
+  --accent-rgb: 64, 128, 255;
+  --accent-strong-rgb: 45, 110, 255;
+  --accent-deep-rgb: 110, 160, 255;
+
+  --hi-rgb: 70, 62, 114;
+  --glow-rgb: 62, 54, 106;
+  --shade-rgb: 4, 5, 22;
+  --tint-rgb: 150, 160, 255;
+
+  --ink: #eceeff;
+  --ink-soft: #dfe2ff;
+
+  color-scheme: dark;
 }
 
 html,
@@ -24,6 +64,7 @@ body {
   overflow: hidden;
   font-family: "Montserrat", sans-serif;
   background-color: var(--bg);
+  color: var(--ink);
 }
 
 // Cream stays on <html> as the fallback; the body must be transparent or its
@@ -47,9 +88,24 @@ body::before {
   // edge sits far off screen and the cream underneath never bleeds in.
   inset: -240px;
   // A light cream wash over the colors, then muted further by the filter.
-  background: linear-gradient(rgba(243, 239, 228, 0.15), rgba(243, 239, 228, 0.15)),
+  background: linear-gradient(rgba(243, 239, 228, 0.22), rgba(243, 239, 228, 0.22)),
     url("assets/images/background/hills.png") center / cover;
-  filter: blur(60px) saturate(0.72) brightness(1.02);
+  // A notch calmer than the device so the shell, not the sky, draws the eye.
+  filter: blur(60px) saturate(0.6) brightness(1.03);
+}
+
+// Night: same hills, washed in deep navy and dimmed.
+.theme-dark body::before {
+  background: linear-gradient(rgba(10, 12, 32, 0.5), rgba(10, 12, 32, 0.5)),
+    url("assets/images/background/hills.png") center / cover;
+  filter: blur(60px) saturate(0.75) brightness(0.5) hue-rotate(15deg);
+}
+
+// On the dark backdrop, white overlay grain turns into visible speckle;
+// soft-light at low strength keeps just a hint of texture.
+.theme-dark body::after {
+  mix-blend-mode: soft-light;
+  opacity: 0.18;
 }
 
 body::after {
@@ -86,4 +142,59 @@ button {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  // No translucent blue box flashing over controls on tap (mobile browsers
+  // and DevTools device mode); each control has its own pressed state.
+  -webkit-tap-highlight-color: transparent;
+}
+
+// Page changes: the screen's content fades out, the page swaps, then fades in
+// (classes toggled on <html> by the nav and main-content). 220ms matches
+// PAGE_FADE_MS in main-content.component.ts.
+.main-content__inner {
+  transition: opacity 0.22s ease;
+}
+
+// Tablet / phone fade. Desktop uses the shutter (main-content.component.scss).
+@media (max-width: 1000px) {
+  .page-leaving .main-content__inner {
+    opacity: 0;
+  }
+}
+
+.page-instant .main-content__inner {
+  transition: none;
+}
+
+// Theme switch cross-fade (see NavigationComponent.toggleTheme): the old look
+// dissolves into the new one instead of snapping.
+// Two layers on two timelines: the device (closer to you) swaps quickly, the
+// backdrop behind it follows slowly.
+.theme-switching .main__body {
+  view-transition-name: device;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 1.2s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-group(device),
+::view-transition-old(device),
+::view-transition-new(device) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Animatable radius for the screen's soft circular aperture (main-content).
+@property --reveal {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+// Quick clicks on a button shouldn't select its label.
+button {
+  user-select: none;
+  -webkit-user-select: none;
 }

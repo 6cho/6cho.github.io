@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -19,7 +19,7 @@
 
       padding: 32px;
       position: relative;
-      transition: 0.3s ease-in-out;
+      transition: none; // size changes snap; animating them desyncs on resize
       overflow: hidden;
 
       // Frosted sage shell: light diffuses through it top-left to bottom-right.
@@ -29,7 +29,7 @@
       --sage-alpha: 93%;
       background: radial-gradient(
           120% 90% at 20% 10%,
-          rgba(255, 255, 255, 0.35),
+          rgba(var(--hi-rgb), 0.35),
           transparent 60%
         ),
         linear-gradient(
@@ -42,12 +42,12 @@
       // Stepped bevel: bright lip -> soft chamfer -> fine seam, then a soft
       // tinted drop shadow instead of hard neumorphic shadows.
       box-shadow: inset 0 0 0 1px var(--shell-hi),
-        inset 0 0 0 7px rgba(255, 255, 255, 0.22),
+        inset 0 0 0 7px rgba(var(--hi-rgb), 0.22),
         inset 0 0 0 8px var(--shell-lo),
-        inset 0 2px 30px rgba(255, 255, 255, 0.45),
-        inset 0 0 60px rgba(235, 250, 240, 0.35),
+        inset 0 2px 30px rgba(var(--hi-rgb), 0.45),
+        inset 0 0 60px rgba(var(--glow-rgb), 0.35),
         0 2px 4px var(--shell-lo),
-        0 30px 60px -24px rgba(40, 70, 55, 0.45);
+        0 30px 60px -24px rgba(var(--shade-rgb), 0.45);
 
       // Children sit above the "internal structure" layers below.
       > * {
@@ -61,9 +61,9 @@
         position: absolute;
         inset: 16px;
         border-radius: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.45);
-        box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.25),
-          0 0 0 1px rgba(60, 95, 75, 0.08);
+        border: 1px solid rgba(var(--hi-rgb), 0.45);
+        box-shadow: inset 0 0 24px rgba(var(--hi-rgb), 0.25),
+          0 0 0 1px rgba(var(--shade-rgb), 0.08);
         pointer-events: none;
       }
 
@@ -79,8 +79,8 @@
         pointer-events: none;
         $post: radial-gradient(
           circle,
-          rgba(60, 95, 75, 0.22) 0 3px,
-          rgba(255, 255, 255, 0.5) 3.5px 6px,
+          rgba(var(--shade-rgb), 0.22) 0 3px,
+          rgba(var(--hi-rgb), 0.5) 3.5px 6px,
           transparent 6.5px
         );
         $at: 23.7px; // 14px tile, so its center lands at ~30.7px
@@ -90,26 +90,42 @@
         background-position: $at $at, calc(100% - #{$at}) $at,
           $at calc(100% - #{$at}), calc(100% - #{$at}) calc(100% - #{$at});
 
-        // Fade in only after the body finishes its 0.3s resize when crossing
-        // into desktop, so the posts don't sit over shifting content.
+        // Soft fade when crossing into desktop, rather than popping in.
+        //
         opacity: 1;
-        transition: opacity 0.25s ease 0.3s;
+        transition: opacity 0.25s ease;
       }
     }
   }
 }
 
+// Layouts:
+//   desktop  > 1000px   rail + square screen side by side
+//   tablet   701-1000   floating device, screen on top, control strip below
+//   phone    <= 700px   full-screen handheld
+// Desktop and tablet always keep at least --gutter of background around the
+// device (the spacing small desktops already had).
+
+:host {
+  --gutter: 30px;
+}
+
 // Desktop: size the device around a square screen that spans exactly the
-// rail's height (ERIC CHO pill top to Resume bottom). The body is content-box,
-// so its width/height exclude the 32px padding: content = 248 rail + 32 gap + screen.
-// The screen is capped so the whole device (content + 64px padding) still fits.
-@media (min-width: 1201px) {
+// rail's height (pill top to Resume bottom). The body is content-box, so its
+// width/height exclude the 32px padding: content = 248 rail + 32 gap + screen.
+// The screen shrinks with the window so the device never loses its gutter:
+// horizontally 2 x gutter + 344px of rail/padding, vertically 2 x gutter + 64px.
+@media (min-width: 1001px) {
   :host {
-    --screen: min(80vh, calc(100vw - 60px - 344px));
+    // The screen is a rounded rectangle: its height fills the window (up to
+    // 80vh) and its width takes what's left beside the rail, capped at square.
+    // Narrow desktops get a taller-than-wide screen instead of empty space.
+    --screen-h: min(80vh, calc(100vh - 2 * var(--gutter) - 64px));
+    --screen-w: min(var(--screen-h), calc(100vw - 2 * var(--gutter) - 344px));
 
     .main__body {
-      width: calc(var(--screen) + 280px);
-      height: var(--screen);
+      width: calc(var(--screen-w) + 280px);
+      height: var(--screen-h);
 
       navigation {
         flex: 0 0 248px;
@@ -118,45 +134,52 @@
   }
 }
 
-@media (max-width: 1200px) {
+// Tablet: still a floating device with its bevel and shadow, but stacked like
+// a handheld: screen on top, controls along the bottom edge.
+@media (max-width: 1000px) {
   :host {
-    .main {
-      &__body {
-        height: calc(100% - 60px);
-        width: calc(100% - 60px);
-        padding: 16px;
-        gap: 16px;
+    .main__body {
+      box-sizing: border-box;
+      width: calc(100% - 2 * var(--gutter));
+      height: calc(100% - 2 * var(--gutter));
+      height: calc(100dvh - 2 * var(--gutter));
+      flex-direction: column-reverse;
+      padding: 20px;
+      gap: 16px;
 
-        // Screw posts are a desktop-only detail; hide instantly when shrinking.
-        &::after {
-          opacity: 0;
-          transition: none;
-        }
+      navigation {
+        flex: 0 0 auto;
+      }
+
+      // Screw posts would sit on the control strip's end keys.
+      &::after {
+        opacity: 0;
+        transition: none;
       }
     }
   }
 }
 
-@media (max-width: 992px) {
+// Phone: the device fills the viewport.
+@media (max-width: 700px) {
   :host {
-    .main {
-      &__body {
-        height: calc(100%);
-        width: calc(100%);
-        flex-direction: column-reverse;
+    .main__body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      padding: 12px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      gap: 12px;
+      border-radius: 0;
+      // Keep the plastic's inner glow, drop the bevel ring and drop shadow
+      // that only make sense on a floating object.
+      box-shadow: inset 0 2px 30px rgba(var(--hi-rgb), 0.45),
+        inset 0 0 60px rgba(var(--glow-rgb), 0.35);
 
-        border-radius: 0;
-
-        box-shadow: none;
-        padding: 0;
-        max-height: 100%;
-        overflow: hidden;
+      // No inner case on the full-screen handheld layout.
+      &::before {
+        display: none;
       }
     }
   }
-}
-
-@media (max-width: 768px) {
-}
-@media (max-width: 595px) {
 }

@@ -3,7 +3,7 @@ $ink: rgb(240, 240, 240);
 $body: rgb(165, 165, 165);
 $dim: rgb(110, 110, 110);
 $rule: rgba(255, 255, 255, 0.09);
-$accent: rgb(255, 80, 50);
+$accent: rgb(var(--accent-strong-rgb));
 
 @mixin label {
   font-size: 10px;
@@ -285,5 +285,12 @@ $accent: rgb(255, 80, 50);
         }
       }
     }
+  }
+}
+
+// Justified text opens big word gaps on narrow cards; left-align on phones.
+@media (max-width: 768px) {
+  :host .text-section ::ng-deep .section-text__text {
+    text-align: left;
   }
 }
