@@ -1,4 +1,4 @@
-// Frosted-sage hardware palette (retro translucent electronics).
+﻿// Frosted-sage hardware palette (retro translucent electronics).
 :root {
   --bg: #f3efe4; // warm off-white cream the device sits on
   --shell: #9dcdad; // frosted sage plastic
@@ -21,6 +21,9 @@
   --shade-rgb: 40, 70, 55;
   --tint-rgb: 45, 90, 64;
 
+  // Display glass: graphite with a faint green-black cast to sit with the sage.
+  --screen-bg: #1d201f;
+
   // Type printed on the shell.
   --ink: #000;
   --ink-soft: #17241c;
@@ -36,14 +39,18 @@
   --shell-hi: rgba(146, 132, 206, 0.28);
   --shell-lo: rgba(4, 5, 20, 0.55);
 
-  --accent-rgb: 64, 128, 255;
-  --accent-strong-rgb: 45, 110, 255;
-  --accent-deep-rgb: 110, 160, 255;
+  --accent-rgb: 30, 105, 255; // vivid electric blue
+  // Anything lit blue uses the Resume button's blue.
+  --accent-strong-rgb: var(--accent-rgb);
+  --accent-deep-rgb: 95, 150, 255;
 
   --hi-rgb: 70, 62, 114;
   --glow-rgb: 62, 54, 106;
   --shade-rgb: 4, 5, 22;
   --tint-rgb: 150, 160, 255;
+
+  // Display glass: graphite with a faint indigo cast to sit with the shell.
+  --screen-bg: #1c1c26;
 
   --ink: #eceeff;
   --ink-soft: #dfe2ff;

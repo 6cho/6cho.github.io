@@ -32,7 +32,7 @@
 
     /* Lit display set into the grey body, ringed in base color like the buttons. */
     border: 8px solid var(--shell);
-    background-color: #1e1f22; // warm graphite, closer to the body tones
+    background-color: var(--screen-bg); // graphite, tinted per theme (styles.scss)
     color: #e6e6e6;
 
     &__glass {
@@ -110,22 +110,23 @@
 @media (min-width: 1001px) {
   :host .main-content {
     // The visible screen (inside the 8px ring) is 16px smaller than --screen-*.
-    // The gray ring (--aperture, its diameter) sits --ring-gap in from the
+    // The gray ring (--aperture, its diameter) sits --ring-inset in from the
     // screen's narrow side, and the content is clipped another --ring-gap
     // inside the ring, so the blank space on both sides of the ring matches.
     --ring-gap: 24px;
-    --aperture: calc(min(var(--screen-w), var(--screen-h)) - 16px - 2 * var(--ring-gap));
+    // How far the ring sits in from the screen's narrow side.
+    --ring-inset: 36px;
+    --aperture: calc(min(var(--screen-w), var(--screen-h)) - 16px - 2 * var(--ring-inset));
 
-    // Soft aperture: content is fully visible up to 3 x --ring-gap inside the
-    // ring, fades across a short band, and is fully clear --ring-gap before
-    // the ring, so nothing ever touches the edge, even mid-animation.
+    // Soft aperture: content fades across a short band (one --ring-gap) and is
+    // fully clear 10px before the ring, so nothing ever touches the edge, even mid-animation.
     // --reveal (registered in styles.scss so it animates) is the ring radius.
     .main-content__inner {
       --reveal: calc(var(--aperture) / 2);
       $soft: radial-gradient(
         circle at 50% 50%,
-        #000 calc(var(--reveal) - 3 * var(--ring-gap)),
-        transparent calc(var(--reveal) - var(--ring-gap))
+        #000 calc(var(--reveal) - var(--ring-gap) - 10px),
+        transparent calc(var(--reveal) - 10px)
       );
       -webkit-mask-image: $soft;
       mask-image: $soft;
@@ -138,8 +139,8 @@
       --reveal: calc((var(--screen-w) + var(--screen-h)) / 2 + 2 * var(--ring-gap));
       $soft: radial-gradient(
         circle at 50% 50%,
-        #000 calc(var(--reveal) - 3 * var(--ring-gap)),
-        transparent calc(var(--reveal) - var(--ring-gap))
+        #000 calc(var(--reveal) - var(--ring-gap) - 10px),
+        transparent calc(var(--reveal) - 10px)
       );
       $fade: transparent var(--fade-gone), #000 var(--fade-full),
         #000 calc(100% - var(--fade-full)), transparent calc(100% - var(--fade-gone));
@@ -158,15 +159,30 @@
       box-sizing: border-box;
       border-radius: 50%;
       border: 3px solid rgba(150, 150, 150, 0.45); // same weight as the corner brackets
+      // Raised like the device's buttons: highlight top-left and shadow
+      // bottom-right in the space around the ring, with the display inside
+      // reading as slightly recessed.
+      // Tighter and stronger to suit the narrower band around the circle.
+      box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.08),
+        6px 6px 12px rgba(0, 0, 0, 0.7),
+        inset 5px 5px 10px rgba(0, 0, 0, 0.55),
+        inset -4px -4px 9px rgba(255, 255, 255, 0.06);
       pointer-events: none;
       z-index: 40;
       transform: translate(-50%, -50%);
-      transition: transform var(--morph), opacity 0.45s ease;
+      transition: transform var(--morph), width var(--morph), height var(--morph),
+        border-radius var(--morph), opacity 0.45s ease;
     }
 
+    // Opening on scroll: the ring morphs into the screen's own rounded-square
+    // outline (inside the 8px border, 16px corners), fading as it arrives.
     &.scrolled .main-content__ring {
-      transform: translate(-50%, -50%) scale(1.6);
+      width: calc(var(--screen-w) - 16px);
+      height: calc(var(--screen-h) - 16px);
+      border-radius: 16px;
       opacity: 0;
+      transition: transform var(--morph), width var(--morph), height var(--morph),
+        border-radius var(--morph), opacity 0.4s ease 0.3s;
     }
   }
 }

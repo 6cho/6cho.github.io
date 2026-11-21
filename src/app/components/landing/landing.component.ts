@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+﻿import { NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -382,8 +382,12 @@ export class LandingComponent {
     // the circle aperture, title centered slightly above the circle's middle.
     const screen = this.host.nativeElement.closest('.main-content') as HTMLElement | null;
     if (window.innerWidth > 1000 && screen) {
-      const ringGap = 24;
-      const r = (Math.min(screen.clientWidth, screen.clientHeight) - 4 * ringGap) / 2;
+      // Visible circle radius: half the screen's narrow side, less the ring's
+      // inset and the blank gap inside it (CSS vars on .main-content).
+      const css = getComputedStyle(screen);
+      const ringInset = parseFloat(css.getPropertyValue('--ring-inset')) || 24;
+      const ringGap = parseFloat(css.getPropertyValue('--ring-gap')) || 24;
+      const r = (Math.min(screen.clientWidth, screen.clientHeight) - 2 * ringInset - 2 * ringGap) / 2;
       const lift = 0.15 * r;
       // ~320px of block below the title center; the title must fit its chord.
       const scale = Math.min(

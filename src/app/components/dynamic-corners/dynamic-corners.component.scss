@@ -126,12 +126,12 @@ $dot-color: rgba(235, 235, 240, 0.9);
 }
 
 // Desktop: at rest the dots sit just outside the gray ring, on the diagonals
-// (--d = ring radius + 4 x --ring-gap, along 45 degrees; --aperture and
+// (--d = ring radius + (--ring-inset - --ring-gap) + 4 x --ring-gap, along 45 degrees; --aperture and
 // --ring-gap come from main-content). When the screen opens, they're pulled
 // out to the corners with the circle, turning into brackets on the way.
 @media (min-width: 1001px) {
   .corners {
-    --d: calc((var(--aperture, 600px) / 2 + 4 * var(--ring-gap, 24px)) * 0.7071);
+    --d: calc((var(--aperture, 600px) / 2 + var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px)) * 0.7071);
     // Never further out than the bracket position, even on small screens.
     inset: max(var(--inset), calc(50% - var(--d)));
     transition: inset var(--morph, 0.6s ease);
@@ -152,7 +152,7 @@ $dot-color: rgba(235, 235, 240, 0.9);
   // of the dot (hidden); during a page change the real dot hides and the line
   // takes over, stretching toward the center while it thins and dims to the
   // ring's weight and color, then contracting back into the white dot.
-  // It reaches 64px past the ring (the dot sits 4 x --ring-gap outside it).
+  // It reaches 64px past the ring.
   .corner__line {
     --lw: var(--dot);
     --lt: var(--dot);
@@ -230,7 +230,7 @@ $dot-color: rgba(235, 235, 240, 0.9);
     }
 
     .corner__line {
-      --lw: calc(4 * var(--ring-gap, 24px) + 64px);
+      --lw: calc(var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px) + 64px);
       --lt: var(--stroke); // bracket weight, like the ring
       --lc: rgba(150, 150, 150, 0.45);
       // Ends at ~0.4s, before the page swaps (SHUTTER_SWAP_MS = 440ms).
