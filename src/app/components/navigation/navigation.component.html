@@ -1,4 +1,4 @@
-<div class="navigation">
+﻿<div class="navigation">
   <!-- The name stays on the rail once the screen's dot display scrolls away. -->
   <div class="navigation__header">
     <div class="navigation__item-header">
@@ -41,13 +41,16 @@
       role="switch"
       [attr.aria-checked]="dark"
       aria-label="Dark mode"
-      (click)="toggleTheme()"
+      (click)="toggleTheme($event)"
     >
       <span class="navigation__theme-knob">
         <i class="fa-solid" [class.fa-sun]="!dark" [class.fa-moon]="dark" aria-hidden="true"></i>
       </span>
     </button>
   </div>
+
+  <!-- Second screen: a minimap of the current page. -->
+  <minimap class="navigation__minimap"></minimap>
 
   <div class="navigation__footer">
     <button class="navigation__item-resume mobile" (click)="getResume()" aria-label="Download resume">

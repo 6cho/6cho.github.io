@@ -9,13 +9,14 @@
   inject,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { MinimapComponent } from '../minimap/minimap.component';
 import { Router } from '@angular/router';
 import { PAGE_LEAVING, pageLeaveMs } from '../main-content/main-content.component';
 
 @Component({
   selector: 'navigation',
   standalone: true,
-  imports: [],
+  imports: [MinimapComponent],
   templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.scss'], // Corrected from 'styleUrl' to 'styleUrls'
 })
@@ -39,7 +40,10 @@ export class NavigationComponent {
     }
   }
 
-  toggleTheme() {
+  toggleTheme(event?: MouseEvent) {
+    // Drop focus after a mouse click so the focus ring doesn't stick around
+    // (keyboard users keep it).
+    if (event?.detail) (event.currentTarget as HTMLElement).blur();
     const apply = () => {
       this.dark = !this.dark;
       document.documentElement.classList.toggle('theme-dark', this.dark);
@@ -78,9 +82,12 @@ export class NavigationComponent {
 
   constructor(private readonly router: Router) {}
 
-  getIconActiveClass(page: string): string {
-    this.url = this.router.url === '/' ? '/home' : this.router.url;
+  /** Page whose key was just pressed; it shows active before the display changes. */
+  private pressed: string | null = null;
 
+  getIconActiveClass(page: string): string {
+    if (this.pressed) return this.pressed === page ? 'active' : '';
+    this.url = this.router.url === '/' ? '/home' : this.router.url;
     return this.url.includes(page) ? 'active' : '';
   }
 
@@ -88,10 +95,12 @@ export class NavigationComponent {
   navigateURL(path: string) {
     const root = document.documentElement;
     if (this.router.url === '/' + path || root.classList.contains(PAGE_LEAVING)) return;
+    // Press the key first (it sinks and lights now), then the display changes.
+    this.pressed = path.split('/').pop() ?? null;
     root.classList.add(PAGE_LEAVING);
     setTimeout(() => {
       this.scrollNavigation.emit(0);
-      this.router.navigate([path]);
+      this.router.navigate([path]).finally(() => (this.pressed = null));
     }, pageLeaveMs());
   }
   getResume() {

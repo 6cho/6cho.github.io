@@ -1,0 +1,170 @@
+﻿// A second, smaller display set into the rail, matching the main screen:
+// dark glass, a base-color ring, and the same soft glare.
+:host {
+  display: block;
+  min-height: 0;
+}
+
+.minimap {
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 6px solid var(--shell);
+  background-color: var(--screen-bg);
+  box-shadow: 7px 7px 14px rgba(var(--shade-rgb), 0.22), -7px -7px 14px rgba(var(--hi-rgb), 0.47);
+  overflow: hidden;
+}
+
+// Footer strip height (the buffer at the bottom of the screen).
+$footer: 30px;
+
+.minimap__canvas {
+  display: block;
+  width: 100%;
+  height: calc(100% - #{$footer});
+  cursor: pointer;
+  touch-action: none;
+}
+
+.minimap__glass {
+  position: absolute;
+  inset: 0;
+  z-index: 2; // bezel lines always draw over the slider
+  border-radius: 12px;
+  pointer-events: none;
+  background: radial-gradient(110% 80% at 12% 0%, rgba(170, 172, 178, 0.05), transparent 50%);
+  box-shadow: inset 0 0 0 2px #6d6e70, inset 0 0 0 3px #303134, inset 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+:host-context(.theme-dark) .minimap__glass {
+  background: radial-gradient(110% 80% at 12% 0%, rgba(255, 255, 255, 0.03), transparent 50%);
+  box-shadow: inset 0 0 0 2px #3a3c56, inset 0 0 0 3px #24253a, inset 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+// Page changes: the map fades out with the page, then fades back in once it
+// has redrawn the new one (it re-measures ~50ms after navigation).
+.minimap__canvas {
+  transition: opacity 0.35s ease 0.12s;
+}
+
+:host-context(.page-leaving) .minimap__canvas {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+:host-context(.page-instant) .minimap__canvas {
+  transition: none;
+}
+
+// The indicator: one glass tab latched flush to the screen's inner left edge
+// (square corners there), rounded at its free right end, with a glowing line.
+// It lives inside the screen, clipped to the glass.
+.minimap__slider {
+  position: absolute;
+  top: 0;
+  // Just inside the glass's 3px inner bezel line.
+  left: 3px;
+  width: calc(var(--slider-w, 180px) - 3px);
+  display: flex;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+  transition: opacity 0.35s ease 0.12s;
+}
+
+.minimap__lens {
+  position: relative;
+  flex: 1;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: brightness(1.35);
+}
+
+// Glowing accent line near the latched end. The indicator stays high-contrast:
+// it matters more than the quiet map behind it.
+.minimap__led {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 16px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: rgb(var(--accent-rgb));
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.8);
+}
+// Fade with the map on page changes.
+:host-context(.page-leaving) .minimap__slider {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+// Footer strip: scroll percentage bottom-left, back-to-top bottom-right.
+.minimap__footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: $footer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 12px;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(170, 172, 178, 0.1);
+  z-index: 1;
+}
+
+.minimap__percent {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(170, 172, 178, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.minimap__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: rgba(245, 245, 248, 0.9);
+  font-size: 10px;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: rgb(var(--accent-rgb));
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--accent-rgb), 0.6);
+    outline-offset: 1px;
+  }
+}
+
+// At the top there's nowhere to go: grey out the chevron.
+.minimap__top:disabled {
+  color: rgba(170, 172, 178, 0.3);
+  cursor: default;
+  pointer-events: none;
+}
+
+// Counter: grey at 0%, white once scrolled.
+.minimap__percent {
+  transition: color 0.2s ease;
+}
+
+.minimap__percent--active {
+  color: rgba(245, 245, 248, 0.9);
+}

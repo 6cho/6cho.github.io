@@ -8,14 +8,15 @@
   .navigation {
     display: grid;
     grid-template-columns: 1fr;
-    // The key bed sizes to its keys; the spare space above the footer holds
-    // the social links instead of an empty recessed panel.
-    grid-template-rows: 50px auto 1fr 50px;
+    // The key bed sizes to its keys, the social / theme row sits with them, the
+    // minimap screen fills the space below, then Resume.
+    grid-template-rows: 50px auto 40px minmax(0, 1fr) 50px;
     gap: 24px;
     grid-template-areas:
       "nav-header"
       "nav-list"
       "nav-links"
+      "nav-minimap"
       "nav-footer";
     height: 100%;
     transition: none;
@@ -41,10 +42,15 @@
       justify-content: center;
     }
 
+    &__minimap {
+      grid-area: nav-minimap;
+      min-height: 0;
+    }
+
     &__links {
       grid-area: nav-links;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 14px;
       padding: 0 4px;
     }
@@ -204,6 +210,7 @@
       height: auto;
 
       &__header,
+      &__minimap,
       &__links {
         display: none;
       }
@@ -261,4 +268,124 @@
       }
     }
   }
+}
+
+// Dark mode: the light-mode catch-light is too close to the indigo shell to
+// read, so the bed only showed its dark side. A brighter, cooler highlight on
+// the bottom-right edge (plus a fine rim) balances the shade top-left.
+:host-context(.theme-dark) .navigation__list {
+  box-shadow: inset 10px 10px 22px rgba(0, 0, 0, 0.4),
+    inset -8px -8px 18px rgba(150, 140, 230, 0.16),
+    inset -1px -1px 0 rgba(170, 160, 240, 0.18);
+}
+
+// Nav key lights: short glowing bars instead of round dots (matches the
+// minimap grip's light).
+:host .navigation .navigation__item .icon.circle {
+  width: 16px;
+  height: 4px;
+  border-radius: 999px;
+
+  &.active {
+    box-shadow: 0 0 6px rgba(var(--accent-strong-rgb), 0.75);
+  }
+}
+
+// Active key: pressed into the bed and lit, so the current page is obvious.
+:host .navigation .navigation__item.active {
+  background: rgba(var(--accent-strong-rgb), 0.12);
+  box-shadow: inset 3px 3px 7px rgba(var(--shade-rgb), 0.35),
+    inset -3px -3px 7px rgba(var(--hi-rgb), 0.45);
+  color: rgb(var(--accent-deep-rgb));
+  font-weight: 600;
+
+  .icon.circle {
+    width: 22px;
+    box-shadow: 0 0 8px rgba(var(--accent-strong-rgb), 0.9);
+  }
+}
+
+// Nav lights: inactive keys show their normal dim bar; the active key's light
+// grows out long and bright. Animated so pressing a key visibly lights it.
+:host .navigation .navigation__item {
+  .icon.circle {
+    width: 16px; // the normal bar length
+    opacity: 0.45;
+    transition: width 0.4s cubic-bezier(0.2, 0.7, 0.25, 1), opacity 0.3s ease,
+      background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  &.active .icon.circle {
+    width: 36px;
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(var(--accent-strong-rgb), 0.95);
+  }
+}
+
+// Dark mode: blue text on the blue-tinted active key is too low contrast;
+// use a bright blue-white (the bar and tint already carry the accent).
+:host-context(.theme-dark) .navigation .navigation__item.active {
+  color: rgb(214, 226, 255);
+}
+
+// Theme switch: same raised outer shadow as the social buttons (so all three
+// read the same height), keeping its recessed track inside.
+:host .navigation .navigation__theme {
+  box-shadow: 6px 6px 12px rgba(var(--shade-rgb), 0.22), -6px -6px 12px rgba(var(--hi-rgb), 0.53),
+    inset 3px 3px 6px rgba(var(--shade-rgb), 0.3), inset -3px -3px 6px rgba(var(--hi-rgb), 0.5);
+}
+
+// Theme switch: a round button (styled like the social buttons) that slides
+// along a thin dark line; no outlined track.
+:host .navigation .navigation__theme {
+  border: none;
+  background: none;
+  box-shadow: none;
+  height: 40px;
+  width: 104px; // long enough that the rail reads beside the knob
+  overflow: visible;
+
+  // The rail: a thin line between the knob's two resting centers.
+  &::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .navigation__theme-knob {
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 4px solid var(--shell);
+    background: linear-gradient(rgba(var(--tint-rgb), 0.12), rgba(var(--tint-rgb), 0.12)), var(--shell);
+    box-shadow: 6px 6px 12px rgba(var(--shade-rgb), 0.22), -6px -6px 12px rgba(var(--hi-rgb), 0.53);
+    font-size: 14px;
+  }
+
+  &.navigation__theme--dark .navigation__theme-knob {
+    transform: translateX(64px);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    .navigation__theme-knob {
+      outline: 2px solid rgb(var(--accent-strong-rgb));
+      outline-offset: 2px;
+    }
+  }
+}
+
+// The knob looks exactly like the social buttons (same face, same icon color).
+:host .navigation .navigation__theme .navigation__theme-knob {
+  color: var(--ink-soft);
 }
