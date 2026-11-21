@@ -13,6 +13,13 @@
           document.documentElement.classList.add('theme-dark');
         }
       } catch (e) {}
+      // Layout before first paint: desktop (>1000px), tablet (<=1000px, also
+      // set for phones) and phone (<=700px). AppComponent keeps it in sync.
+      (function () {
+        var w = window.innerWidth, c = document.documentElement.classList;
+        c.add(w > 1000 ? 'bp-desk' : 'bp-tab');
+        if (w <= 700) c.add('bp-phone');
+      })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

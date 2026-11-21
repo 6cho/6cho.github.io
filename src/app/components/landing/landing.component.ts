@@ -381,7 +381,7 @@ export class LandingComponent {
     // Desktop: fit the whole title block (dots, subtitles, chevron) inside
     // the circle aperture, title centered slightly above the circle's middle.
     const screen = this.host.nativeElement.closest('.main-content') as HTMLElement | null;
-    if (window.innerWidth > 1000 && screen) {
+    if (document.documentElement.classList.contains('bp-desk') && screen) {
       // Visible circle radius: half the screen's narrow side, less the ring's
       // inset and the blank gap inside it (CSS vars on .main-content).
       const css = getComputedStyle(screen);

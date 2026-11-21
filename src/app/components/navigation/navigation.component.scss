@@ -197,75 +197,74 @@
 
 // Phone and small tablet: the rail becomes a control strip under the screen.
 // Role label and social links step aside; keys and Resume stay.
-@media (max-width: 1000px) {
-  :host {
-    gap: 0;
-    width: 100%;
-    min-width: 0;
+// (was @media (max-width: 1000px))
+:host-context(.bp-tab) {
+  gap: 0;
+  width: 100%;
+  min-width: 0;
 
-    .navigation {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+  .navigation {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: auto;
+
+    &__header,
+    &__minimap,
+    &__links {
+      display: none;
+    }
+
+    &__list {
+      flex: 1;
+      flex-direction: row;
+      gap: 6px;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
       height: auto;
+    }
 
-      &__header,
-      &__minimap,
-      &__links {
+    &__footer {
+      width: auto;
+      height: auto;
+    }
+
+    &__item,
+    &__item-resume {
+      height: 40px;
+      min-height: 40px;
+      box-sizing: border-box;
+      box-shadow: 3px 3px 6px rgba(var(--shade-rgb), 0.22), -3px -3px 6px rgba(var(--hi-rgb), 0.53);
+    }
+
+    &__item {
+      flex: 1;
+      min-width: 0;
+      justify-content: center;
+      padding: 0 4px;
+      font-size: 11px;
+      white-space: nowrap;
+
+      .icon.circle {
         display: none;
       }
 
-      &__list {
-        flex: 1;
-        flex-direction: row;
-        gap: 6px;
-        padding: 0;
-        border-radius: 0;
-        box-shadow: none;
-        height: auto;
+      // Active key: lit orange, like the desktop LED.
+      &.active {
+        color: rgb(var(--accent-deep-rgb));
+        background: rgba(var(--accent-strong-rgb), 0.14);
       }
+    }
 
-      &__footer {
-        width: auto;
-        height: auto;
-      }
+    &__item-resume {
+      width: 40px;
+      padding: 0;
+      justify-content: center;
+    }
 
-      &__item,
-      &__item-resume {
-        height: 40px;
-        min-height: 40px;
-        box-sizing: border-box;
-        box-shadow: 3px 3px 6px rgba(var(--shade-rgb), 0.22), -3px -3px 6px rgba(var(--hi-rgb), 0.53);
-      }
-
-      &__item {
-        flex: 1;
-        min-width: 0;
-        justify-content: center;
-        padding: 0 4px;
-        font-size: 11px;
-        white-space: nowrap;
-
-        .icon.circle {
-          display: none;
-        }
-
-        // Active key: lit orange, like the desktop LED.
-        &.active {
-          color: rgb(var(--accent-deep-rgb));
-          background: rgba(var(--accent-strong-rgb), 0.14);
-        }
-      }
-
-      &__item-resume {
-        width: 40px;
-        padding: 0;
-        justify-content: center;
-      }
-
-      &__resume-label {
-        display: none;
-      }
+    &__resume-label {
+      display: none;
     }
   }
 }
@@ -388,4 +387,205 @@
 // The knob looks exactly like the social buttons (same face, same icon color).
 :host .navigation .navigation__theme .navigation__theme-knob {
   color: var(--ink-soft);
+}
+
+// Phones: a dock under the edge-to-edge screen. Slim pills with light rings,
+// even spacing, and room around it.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) {
+  padding: 4px 14px 0;
+  box-sizing: border-box;
+
+  .navigation {
+    gap: 10px;
+
+    .navigation__list {
+      gap: 8px;
+    }
+
+    .navigation__item,
+    .navigation__item-resume {
+      height: 38px;
+      min-height: 38px;
+      border-width: 2px;
+      box-shadow: 2px 2px 5px rgba(var(--shade-rgb), 0.18), -2px -2px 5px rgba(var(--hi-rgb), 0.45);
+    }
+
+    .navigation__item {
+      padding: 0 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .navigation__item.active {
+      font-weight: 600;
+      box-shadow: inset 2px 2px 5px rgba(var(--shade-rgb), 0.3), inset -2px -2px 5px rgba(var(--hi-rgb), 0.4);
+    }
+
+    .navigation__item-resume {
+      width: 38px;
+    }
+  }
+}
+
+// Menu button: phones only.
+.navigation__menu {
+  display: none;
+}
+
+// Phones: the dock is two buttons, the menu and Resume. The page keys open
+// in a panel above the dock.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) {
+  position: relative;
+
+  .navigation {
+    .navigation__menu {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      width: 46px;
+      height: 46px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      border: 2px solid var(--shell);
+      background: rgba(var(--tint-rgb), 0.12);
+      box-shadow: 2px 2px 5px rgba(var(--shade-rgb), 0.18), -2px -2px 5px rgba(var(--hi-rgb), 0.45);
+      color: var(--ink-soft);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    &.navigation--menu-open .navigation__menu {
+      box-shadow: inset 2px 2px 5px rgba(var(--shade-rgb), 0.3), inset -2px -2px 5px rgba(var(--hi-rgb), 0.4);
+      color: rgb(var(--accent-deep-rgb));
+    }
+
+    // Page keys: hidden until the menu opens, then a panel above the dock.
+    .navigation__list {
+      display: none;
+    }
+
+    &.navigation--menu-open .navigation__list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: calc(100% + 12px);
+      z-index: 100;
+      padding: 14px;
+      border-radius: 22px;
+      background: var(--shell);
+      box-shadow: 0 10px 30px rgba(var(--shade-rgb), 0.35), inset 0 1px 0 rgba(var(--hi-rgb), 0.5);
+      animation: menu-in 0.22s cubic-bezier(0.2, 0.7, 0.25, 1);
+
+      .navigation__item {
+        flex: none;
+        height: 46px;
+        min-height: 46px;
+        justify-content: space-between;
+        padding: 0 18px 0 14px;
+        font-size: 14px;
+
+        .icon.circle {
+          display: block;
+        }
+      }
+    }
+
+    // Resume fills the rest of the dock, with its label.
+    .navigation__footer {
+      flex: 1;
+    }
+
+    .navigation__item-resume {
+      width: 100%;
+      height: 46px;
+      min-height: 46px;
+      justify-content: space-between;
+      padding: 0 18px 0 20px;
+    }
+
+    .navigation__resume-label {
+      display: inline;
+    }
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+// Phones, on graphite: glassy menu button, orange outline Resume, graphite
+// menu panel. Quiet, so the screen stays the focus.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .navigation {
+  $glass: rgba(255, 255, 255, 0.05);
+  $edge: rgba(255, 255, 255, 0.12);
+  $text: rgba(235, 236, 240, 0.85);
+
+  .navigation__menu {
+    border: 1px solid $edge;
+    background: $glass;
+    box-shadow: none;
+    color: $text;
+  }
+
+  &.navigation--menu-open .navigation__menu {
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.09);
+    color: rgb(var(--accent-rgb));
+  }
+
+  .navigation__item-resume {
+    border: 1.5px solid rgb(var(--accent-rgb));
+    background: transparent;
+    box-shadow: none;
+    color: rgb(var(--accent-rgb));
+
+    &:hover {
+      background: rgba(var(--accent-rgb), 0.1);
+      box-shadow: none;
+    }
+  }
+
+  &.navigation--menu-open .navigation__list {
+    background: color-mix(in srgb, var(--screen-bg) 88%, white);
+    border: 1px solid $edge;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 255, 255, 0.06);
+
+    .navigation__item {
+      border: 1px solid $edge;
+      background: $glass;
+      box-shadow: none;
+      color: $text;
+
+      .icon.circle {
+        background-color: $text;
+      }
+
+      &.active {
+        background: rgba(var(--accent-rgb), 0.12);
+        box-shadow: none;
+        color: rgb(var(--accent-rgb));
+
+        .icon.circle {
+          background-color: rgb(var(--accent-rgb));
+        }
+      }
+    }
+  }
+}
+
+// Phones: Resume takes half the dock's width, sitting on the right.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .navigation .navigation__footer {
+  flex: 0 0 50%;
+  margin-left: auto;
 }

@@ -107,83 +107,85 @@
 // content is clipped to the circle and a thin gray ring marks its edge; on
 // scroll the aperture opens out past the corners and the ring expands and
 // fades, revealing the full screen.
-@media (min-width: 1001px) {
-  :host .main-content {
-    // The visible screen (inside the 8px ring) is 16px smaller than --screen-*.
-    // The gray ring (--aperture, its diameter) sits --ring-inset in from the
-    // screen's narrow side, and the content is clipped another --ring-gap
-    // inside the ring, so the blank space on both sides of the ring matches.
-    --ring-gap: 24px;
-    // How far the ring sits in from the screen's narrow side.
-    --ring-inset: 36px;
-    --aperture: calc(min(var(--screen-w), var(--screen-h)) - 16px - 2 * var(--ring-inset));
+// (was @media (min-width: 1001px))
+:host-context(.bp-desk) .main-content {
+  // The visible screen (inside the 8px ring) is 16px smaller than --screen-*.
+  // The gray ring (--aperture, its diameter) sits --ring-inset in from the
+  // screen's narrow side, and the content is clipped another --ring-gap
+  // inside the ring, so the blank space on both sides of the ring matches.
+  --ring-gap: 24px;
+  // How far the ring sits in from the screen's narrow side.
+  --ring-inset: 36px;
+  --aperture: calc(min(var(--screen-w), var(--screen-h)) - 16px - 2 * var(--ring-inset));
 
-    // Soft aperture: content fades across a short band (one --ring-gap) and is
-    // fully clear 10px before the ring, so nothing ever touches the edge, even mid-animation.
-    // --reveal (registered in styles.scss so it animates) is the ring radius.
-    .main-content__inner {
-      --reveal: calc(var(--aperture) / 2);
-      $soft: radial-gradient(
-        circle at 50% 50%,
-        #000 calc(var(--reveal) - var(--ring-gap) - 10px),
-        transparent calc(var(--reveal) - 10px)
-      );
-      -webkit-mask-image: $soft;
-      mask-image: $soft;
-      transition: --reveal var(--morph), opacity 0.22s ease;
-    }
+  // Soft aperture: content fades across a short band (one --ring-gap) and is
+  // fully clear 10px before the ring, so nothing ever touches the edge, even mid-animation.
+  // --reveal (registered in styles.scss so it animates) is the ring radius.
+  .main-content__inner {
+    --reveal: calc(var(--aperture) / 2);
+    $soft: radial-gradient(
+      circle at 50% 50%,
+      #000 calc(var(--reveal) - var(--ring-gap) - 10px),
+      transparent calc(var(--reveal) - 10px)
+    );
+    -webkit-mask-image: $soft;
+    mask-image: $soft;
+    transition: --reveal var(--morph), opacity 0.22s ease;
+  }
 
-    // Open: the soft edge grows past the corners, then the usual edge fades
-    // take over (intersected with it).
-    &.scrolled .main-content__inner {
-      --reveal: calc((var(--screen-w) + var(--screen-h)) / 2 + 2 * var(--ring-gap));
-      $soft: radial-gradient(
-        circle at 50% 50%,
-        #000 calc(var(--reveal) - var(--ring-gap) - 10px),
-        transparent calc(var(--reveal) - 10px)
-      );
-      $fade: transparent var(--fade-gone), #000 var(--fade-full),
-        #000 calc(100% - var(--fade-full)), transparent calc(100% - var(--fade-gone));
-      -webkit-mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
-      mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
-      -webkit-mask-composite: source-in;
-      mask-composite: intersect;
-    }
+  // Open: the soft edge grows past the corners, then the usual edge fades
+  // take over (intersected with it).
+  &.scrolled .main-content__inner {
+    --reveal: calc((var(--screen-w) + var(--screen-h)) / 2 + 2 * var(--ring-gap));
+    $soft: radial-gradient(
+      circle at 50% 50%,
+      #000 calc(var(--reveal) - var(--ring-gap) - 10px),
+      transparent calc(var(--reveal) - 10px)
+    );
+    $fade: transparent var(--fade-gone), #000 var(--fade-full),
+      #000 calc(100% - var(--fade-full)), transparent calc(100% - var(--fade-gone));
+    -webkit-mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
+    mask-image: $soft, linear-gradient(to bottom, $fade), linear-gradient(to right, $fade);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
 
-    .main-content__ring {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: var(--aperture);
-      height: var(--aperture);
-      box-sizing: border-box;
-      border-radius: 50%;
-      border: 3px solid rgba(150, 150, 150, 0.45); // same weight as the corner brackets
-      // Raised like the device's buttons: highlight top-left and shadow
-      // bottom-right in the space around the ring, with the display inside
-      // reading as slightly recessed.
-      // Tighter and stronger to suit the narrower band around the circle.
-      box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.08),
-        6px 6px 12px rgba(0, 0, 0, 0.7),
-        inset 5px 5px 10px rgba(0, 0, 0, 0.55),
-        inset -4px -4px 9px rgba(255, 255, 255, 0.06);
-      pointer-events: none;
-      z-index: 40;
-      transform: translate(-50%, -50%);
-      transition: transform var(--morph), width var(--morph), height var(--morph),
-        border-radius var(--morph), opacity 0.45s ease;
-    }
+  .main-content__ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--aperture);
+    height: var(--aperture);
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 3px solid rgba(150, 150, 150, 0.45); // same weight as the corner brackets
+    // Raised like the device's buttons: highlight top-left and shadow
+    // bottom-right in the space around the ring, with the display inside
+    // reading as slightly recessed.
+    // Tighter and stronger to suit the narrower band around the circle.
+    box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.08),
+      6px 6px 12px rgba(0, 0, 0, 0.7),
+      inset 5px 5px 10px rgba(0, 0, 0, 0.55),
+      inset -4px -4px 9px rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+    z-index: 40;
+    transform: translate(-50%, -50%);
+    transition: transform var(--morph), width var(--morph), height var(--morph),
+      border-radius var(--morph), opacity 0.45s ease;
+  }
 
-    // Opening on scroll: the ring morphs into the screen's own rounded-square
-    // outline (inside the 8px border, 16px corners), fading as it arrives.
-    &.scrolled .main-content__ring {
-      width: calc(var(--screen-w) - 16px);
-      height: calc(var(--screen-h) - 16px);
-      border-radius: 16px;
-      opacity: 0;
-      transition: transform var(--morph), width var(--morph), height var(--morph),
-        border-radius var(--morph), opacity 0.4s ease 0.3s;
-    }
+  // Opening on scroll: the ring morphs into the screen's own rounded-square
+  // outline (inside the 8px border, 16px corners), fading as it arrives.
+  // Opening on scroll: the ring heads toward the corner brackets' frame (24px
+  // in from the screen's inner edge, nearly square corners) but fades out on
+  // the way, so it never overlaps the brackets.
+  &.scrolled .main-content__ring {
+    width: calc(var(--screen-w) - 16px - 48px);
+    height: calc(var(--screen-h) - 16px - 48px);
+    border-radius: 4px;
+    opacity: 0;
+    transition: transform var(--morph), width var(--morph), height var(--morph),
+      border-radius var(--morph), opacity 0.3s ease 0.05s; // gone well before it reaches the brackets
   }
 }
 
@@ -193,81 +195,78 @@
 //   page-entering  new page irises open, fading in from half size (0.65s)
 //   page-instant   back/forward: close without animating, then open as usual
 // The corner pieces (dynamic-corners) animate along with it.
-@media (min-width: 1001px) {
-  :host-context(.page-leaving) .main-content {
-    .main-content__inner {
-      --reveal: 0px;
-      opacity: 0;
-      transition: --reveal 0.48s var(--shutter-in), opacity 0.4s ease-out;
-    }
-
-    .main-content__ring {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.02);
-      transition: transform 0.48s var(--shutter-in), opacity 0.4s ease-out;
-    }
+// (was @media (min-width: 1001px))
+:host-context(.page-leaving.bp-desk) .main-content {
+  .main-content__inner {
+    --reveal: 0px;
+    opacity: 0;
+    transition: --reveal 0.48s var(--shutter-in), opacity 0.4s ease-out;
   }
 
-  :host-context(.page-entering) .main-content {
-    .main-content__inner {
-      transition: --reveal 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
-    }
-
-    .main-content__ring {
-      transition: transform 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
-    }
-  }
-
-  :host-context(.page-instant) .main-content {
-    .main-content__inner,
-    .main-content__ring {
-      transition: none;
-    }
+  .main-content__ring {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.02);
+    transition: transform 0.48s var(--shutter-in), opacity 0.4s ease-out;
   }
 }
 
-@media (max-width: 1000px) {
-  :host .main-content__ring {
-    display: none;
+:host-context(.page-entering.bp-desk) .main-content {
+  .main-content__inner {
+    transition: --reveal 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
   }
+
+  .main-content__ring {
+    transition: transform 0.65s var(--shutter-out), opacity 0.4s ease 0.07s;
+  }
+}
+
+:host-context(.page-instant.bp-desk) .main-content {
+  .main-content__inner,
+  .main-content__ring {
+    transition: none;
+  }
+}
+
+// (was @media (max-width: 1000px))
+:host-context(.bp-tab) .main-content__ring {
+  display: none;
 }
 
 
 // Phones and small tablets: the screen fills the space above the control
 // strip as a rounded rectangle; a circle would waste most of a tall display.
-@media (max-width: 1000px) {
-  :host {
-    // The screen sizes itself to the space above the control strip.
-    container-type: size;
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
+// (was @media (max-width: 1000px))
+:host-context(.bp-tab) {
+  // The screen sizes itself to the space above the control strip.
+  container-type: size;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
 
-    .main-content,
-    .main-content.scrolled {
-      --pad: 16px;
-      width: calc(100cqw - 2 * var(--pad) - 16px);
-      height: calc(100cqh - 2 * var(--pad) - 16px);
-      border-radius: 24px;
-      box-shadow: 4px 4px 10px rgba(var(--shade-rgb), 0.28), -4px -4px 10px rgba(var(--hi-rgb), 0.6);
+  .main-content,
+  .main-content.scrolled {
+    --pad: 16px;
+    width: calc(100cqw - 2 * var(--pad) - 16px);
+    height: calc(100cqh - 2 * var(--pad) - 16px);
+    border-radius: 24px;
+    box-shadow: 4px 4px 10px rgba(var(--shade-rgb), 0.28), -4px -4px 10px rgba(var(--hi-rgb), 0.6);
 
-      .main-content__glass {
-        border-radius: 16px;
-      }
+    .main-content__glass {
+      border-radius: 16px;
     }
+  }
 
-    // Tighter edge fade to suit the smaller screen. The sides fade much less:
-    // phone cards run close to the edge, and their text shouldn't dim.
-    .main-content.scrolled .main-content__inner {
-      mask-image: linear-gradient(
-          to bottom,
-          transparent 14px,
-          #000 56px,
-          #000 calc(100% - 56px),
-          transparent calc(100% - 14px)
-        ),
-        linear-gradient(to right, transparent 4px, #000 14px, #000 calc(100% - 14px), transparent calc(100% - 4px));
-    }
+  // Tighter edge fade to suit the smaller screen. The sides fade much less:
+  // phone cards run close to the edge, and their text shouldn't dim.
+  .main-content.scrolled .main-content__inner {
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 14px,
+        #000 56px,
+        #000 calc(100% - 56px),
+        transparent calc(100% - 14px)
+      ),
+      linear-gradient(to right, transparent 4px, #000 14px, #000 calc(100% - 14px), transparent calc(100% - 4px));
   }
 }
 
@@ -283,4 +282,37 @@
   box-shadow: inset 0 0 0 3px #3a3c56, inset 0 0 0 4px #24253a,
     inset 0 0 0 5px rgba(0, 0, 0, 0.55),
     inset 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+// Phones: edge to edge on the sides and top, no frame; the screen's rounded
+// bottom sits directly on the device above the control strip.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) {
+  .main-content,
+  .main-content.scrolled {
+    border-width: 0;
+    width: calc(100cqw - 2 * var(--pad));
+    height: calc(100cqh - 2 * var(--pad));
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 10px rgba(var(--shade-rgb), 0.22);
+
+    // No bezel line along the open edges; keep a soft top shadow.
+    .main-content__glass {
+      border-radius: 0 0 16px 16px;
+      box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+  }
+}
+
+// Phones: on the graphite surface, a soft white glow along the screen's bottom
+// edge separates it from the dock.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .main-content,
+:host-context(.bp-phone) .main-content.scrolled {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1), 0 10px 26px -8px rgba(255, 255, 255, 0.16);
+}
+
+// Blend the screen's corners and shadow across layout breakpoints.
+:host .main-content {
+  transition: border-radius 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
 }

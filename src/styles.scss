@@ -162,10 +162,8 @@ button {
 }
 
 // Tablet / phone fade. Desktop uses the shutter (main-content.component.scss).
-@media (max-width: 1000px) {
-  .page-leaving .main-content__inner {
-    opacity: 0;
-  }
+.bp-tab.page-leaving .main-content__inner {
+  opacity: 0;
 }
 
 .page-instant .main-content__inner {
@@ -180,17 +178,40 @@ button {
   view-transition-name: device;
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
+:root.theme-switching::view-transition-old(root),
+:root.theme-switching::view-transition-new(root) {
   animation-duration: 1.2s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-::view-transition-group(device),
-::view-transition-old(device),
-::view-transition-new(device) {
+:root.theme-switching::view-transition-group(device),
+:root.theme-switching::view-transition-old(device),
+:root.theme-switching::view-transition-new(device) {
   animation-duration: 0.45s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Layout morph (crossing the phone / tablet / desktop breakpoints, see
+// AppComponent): the device, screen and rail each glide from their old box to
+// their new one while the rest cross-fades.
+.layout-morphing .main__body {
+  view-transition-name: device;
+}
+
+.layout-morphing div.main-content {
+  view-transition-name: screen;
+}
+
+:root.layout-morphing::view-transition-group(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+:root.layout-morphing::view-transition-old(*),
+:root.layout-morphing::view-transition-new(*) {
+  animation-duration: 0.5s;
+  // Stretch snapshots to the box as it morphs instead of letterboxing.
+  height: 100%;
 }
 
 // Animatable radius for the screen's soft circular aperture (main-content).

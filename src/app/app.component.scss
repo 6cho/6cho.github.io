@@ -115,71 +115,109 @@
 // width/height exclude the 32px padding: content = 248 rail + 32 gap + screen.
 // The screen shrinks with the window so the device never loses its gutter:
 // horizontally 2 x gutter + 344px of rail/padding, vertically 2 x gutter + 64px.
-@media (min-width: 1001px) {
-  :host {
-    // The screen is a rounded rectangle: its height fills the window (up to
-    // 80vh) and its width takes what's left beside the rail, capped at square.
-    // Narrow desktops get a taller-than-wide screen instead of empty space.
-    --screen-h: min(80vh, calc(100vh - 2 * var(--gutter) - 64px));
-    --screen-w: min(var(--screen-h), calc(100vw - 2 * var(--gutter) - 344px));
+// (was @media (min-width: 1001px))
+:host-context(.bp-desk) {
+  // The screen is a rounded rectangle: its height fills the window (up to
+  // 80vh) and its width takes what's left beside the rail, capped at square.
+  // Narrow desktops get a taller-than-wide screen instead of empty space.
+  --screen-h: min(80vh, calc(100vh - 2 * var(--gutter) - 64px));
+  --screen-w: min(var(--screen-h), calc(100vw - 2 * var(--gutter) - 344px));
 
-    .main__body {
-      width: calc(var(--screen-w) + 280px);
-      height: var(--screen-h);
+  .main__body {
+    width: calc(var(--screen-w) + 280px);
+    height: var(--screen-h);
 
-      navigation {
-        flex: 0 0 248px;
-      }
+    navigation {
+      flex: 0 0 248px;
     }
   }
 }
 
 // Tablet: still a floating device with its bevel and shadow, but stacked like
 // a handheld: screen on top, controls along the bottom edge.
-@media (max-width: 1000px) {
-  :host {
-    .main__body {
-      box-sizing: border-box;
-      width: calc(100% - 2 * var(--gutter));
-      height: calc(100% - 2 * var(--gutter));
-      height: calc(100dvh - 2 * var(--gutter));
-      flex-direction: column-reverse;
-      padding: 20px;
-      gap: 16px;
+// (was @media (max-width: 1000px))
+:host-context(.bp-tab) {
+  .main__body {
+    box-sizing: border-box;
+    width: calc(100% - 2 * var(--gutter));
+    height: calc(100% - 2 * var(--gutter));
+    height: calc(100dvh - 2 * var(--gutter));
+    flex-direction: column-reverse;
+    padding: 20px;
+    gap: 16px;
 
-      navigation {
-        flex: 0 0 auto;
-      }
+    navigation {
+      flex: 0 0 auto;
+    }
 
-      // Screw posts would sit on the control strip's end keys.
-      &::after {
-        opacity: 0;
-        transition: none;
-      }
+    // Screw posts would sit on the control strip's end keys.
+    &::after {
+      opacity: 0;
+      transition: none;
     }
   }
 }
 
 // Phone: the device fills the viewport.
-@media (max-width: 700px) {
-  :host {
-    .main__body {
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      padding: 12px;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-      gap: 12px;
-      border-radius: 0;
-      // Keep the plastic's inner glow, drop the bevel ring and drop shadow
-      // that only make sense on a floating object.
-      box-shadow: inset 0 2px 30px rgba(var(--hi-rgb), 0.45),
-        inset 0 0 60px rgba(var(--glow-rgb), 0.35);
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) {
+  .main__body {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 12px;
+    border-radius: 0;
+    // Keep the plastic's inner glow, drop the bevel ring and drop shadow
+    // that only make sense on a floating object.
+    box-shadow: inset 0 2px 30px rgba(var(--hi-rgb), 0.45),
+      inset 0 0 60px rgba(var(--glow-rgb), 0.35);
 
-      // No inner case on the full-screen handheld layout.
-      &::before {
-        display: none;
-      }
+    // No inner case on the full-screen handheld layout.
+    &::before {
+      display: none;
     }
   }
+}
+// Phones: the screen runs edge to edge on the sides and top; only the
+// control strip keeps side margins (see navigation).
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .main__body {
+  padding: 0 0 max(14px, env(safe-area-inset-bottom));
+  gap: 14px;
+}
+
+// Phones: the dock sits above the screen so its menu panel isn't covered.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .main__body > navigation {
+  z-index: 3;
+}
+
+// Phones: no device shell; the whole surface is the screen's graphite so the
+// display and the dock read as one seamless piece.
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .main__body {
+  background: var(--screen-bg);
+  box-shadow: none;
+}
+
+// Breakpoint crossings: the layout swaps in one frame (animating sizes made
+// the pieces tween out of sync); colors, corners and shadows blend.
+:host .main__body {
+  // A solid shell color under the texture, so color blends never pass through
+  // transparent.
+  background-color: var(--shell);
+  transition: background-color 0.35s ease, border-radius 0.35s ease, box-shadow 0.35s ease;
+
+
+}
+
+
+
+// Phones: graphite surface (after the base shell color so it wins).
+// (was @media (max-width: 700px))
+:host-context(.bp-phone) .main__body {
+  background-color: var(--screen-bg);
+  background-image: none;
 }

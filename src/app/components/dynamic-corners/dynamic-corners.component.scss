@@ -129,17 +129,16 @@ $dot-color: rgba(235, 235, 240, 0.9);
 // (--d = ring radius + (--ring-inset - --ring-gap) + 4 x --ring-gap, along 45 degrees; --aperture and
 // --ring-gap come from main-content). When the screen opens, they're pulled
 // out to the corners with the circle, turning into brackets on the way.
-@media (min-width: 1001px) {
-  .corners {
-    --d: calc((var(--aperture, 600px) / 2 + var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px)) * 0.7071);
-    // Never further out than the bracket position, even on small screens.
-    inset: max(var(--inset), calc(50% - var(--d)));
-    transition: inset var(--morph, 0.6s ease);
-  }
+// (was @media (min-width: 1001px))
+:host-context(.bp-desk) .corners {
+  --d: calc((var(--aperture, 600px) / 2 + var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px)) * 0.7071);
+  // Never further out than the bracket position, even on small screens.
+  inset: max(var(--inset), calc(50% - var(--d)));
+  transition: inset var(--morph, 0.6s ease);
+}
 
-  .corners--open {
-    inset: var(--inset);
-  }
+:host-context(.bp-desk) .corners--open {
+  inset: var(--inset);
 }
 // Page change (desktop only; phones / tablets just fade the content).
 //   close  each corner becomes a dot at its resting spot; as the circle
@@ -147,117 +146,115 @@ $dot-color: rgba(235, 235, 240, 0.9);
 //          trailing just behind the circle's edge
 //   open   as the circle expands, the lines retract into the corners as if
 //          pulling it open, then settle back into dots
-@media (min-width: 1001px) {
-  // The diagonal line: the dot itself, stretched. At rest it's an exact copy
-  // of the dot (hidden); during a page change the real dot hides and the line
-  // takes over, stretching toward the center while it thins and dims to the
-  // ring's weight and color, then contracting back into the white dot.
-  // It reaches 64px past the ring.
+// (was @media (min-width: 1001px))
+// The diagonal line: the dot itself, stretched. At rest it's an exact copy
+// of the dot (hidden); during a page change the real dot hides and the line
+// takes over, stretching toward the center while it thins and dims to the
+// ring's weight and color, then contracting back into the white dot.
+// It reaches 64px past the ring.
+.corner__line {
+  --lw: var(--dot);
+  --lt: var(--dot);
+  --lc: #{$dot-color};
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--lw);
+  height: var(--lt);
+  border-radius: 999px;
+  background: var(--lc);
+  transform-origin: 0 0;
+  // Rotate toward the center, then center the line on the dot's center.
+  transform: translate(var(--ox), var(--oy)) rotate(var(--angle))
+    translate(calc(var(--lt) / -2), calc(var(--lt) / -2));
+  opacity: 0;
+}
+
+// Dot centers (from each corner point) and the angle toward the center.
+.corner--tl .corner__line {
+  --ox: calc(var(--dot) / 2);
+  --oy: calc(var(--dot) / 2);
+  --angle: 45deg;
+}
+
+.corner--tr .corner__line {
+  --ox: calc(var(--dot) / -2);
+  --oy: calc(var(--dot) / 2);
+  --angle: 135deg;
+}
+
+.corner--br .corner__line {
+  --ox: calc(var(--dot) / -2);
+  --oy: calc(var(--dot) / -2);
+  --angle: -135deg;
+}
+
+.corner--bl .corner__line {
+  --ox: calc(var(--dot) / 2);
+  --oy: calc(var(--dot) / -2);
+  --angle: -45deg;
+}
+
+:host-context(.page-leaving.bp-desk),
+:host-context(.page-entering.bp-desk) {
+  // Dots at their resting spot, whatever form they were in.
+  .corners {
+    inset: max(var(--inset), calc(50% - var(--d)));
+  }
+
+  .corner {
+    --len: var(--dot);
+    --th: var(--dot);
+    --round: 999px;
+    --color: #{$dot-color};
+    --morph-t: 0.2s;
+
+    // The line stands in for the dot for the whole page change.
+    &::before,
+    &::after {
+      opacity: 0;
+    }
+  }
+
   .corner__line {
-    --lw: var(--dot);
-    --lt: var(--dot);
-    --lc: #{$dot-color};
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: var(--lw);
-    height: var(--lt);
-    border-radius: 999px;
-    background: var(--lc);
-    transform-origin: 0 0;
-    // Rotate toward the center, then center the line on the dot's center.
-    transform: translate(var(--ox), var(--oy)) rotate(var(--angle))
-      translate(calc(var(--lt) / -2), calc(var(--lt) / -2));
-    opacity: 0;
+    opacity: 1;
+  }
+}
+
+// Close: stretch in, trailing just behind the circle's edge, thinning and
+// dimming to match the ring.
+:host-context(.page-leaving.bp-desk) {
+  .corners {
+    transition: inset 0.25s var(--shutter-out);
   }
 
-  // Dot centers (from each corner point) and the angle toward the center.
-  .corner--tl .corner__line {
-    --ox: calc(var(--dot) / 2);
-    --oy: calc(var(--dot) / 2);
-    --angle: 45deg;
+  .corner__line {
+    --lw: calc(var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px) + 64px);
+    --lt: var(--stroke); // bracket weight, like the ring
+    --lc: rgba(150, 150, 150, 0.45);
+    // Ends at ~0.4s, before the page swaps (SHUTTER_SWAP_MS = 440ms).
+    transition: width 0.36s var(--shutter-in) 0.04s, height 0.3s ease 0.04s,
+      transform 0.3s ease 0.04s, background-color 0.3s ease 0.04s;
   }
+}
 
-  .corner--tr .corner__line {
-    --ox: calc(var(--dot) / -2);
-    --oy: calc(var(--dot) / 2);
-    --angle: 135deg;
-  }
-
-  .corner--br .corner__line {
-    --ox: calc(var(--dot) / -2);
-    --oy: calc(var(--dot) / -2);
-    --angle: -135deg;
-  }
-
-  .corner--bl .corner__line {
-    --ox: calc(var(--dot) / 2);
-    --oy: calc(var(--dot) / -2);
-    --angle: -45deg;
-  }
-
-  :host-context(.page-leaving),
-  :host-context(.page-entering) {
-    // Dots at their resting spot, whatever form they were in.
-    .corners {
-      inset: max(var(--inset), calc(50% - var(--d)));
-    }
-
-    .corner {
-      --len: var(--dot);
-      --th: var(--dot);
-      --round: 999px;
-      --color: #{$dot-color};
-      --morph-t: 0.2s;
-
-      // The line stands in for the dot for the whole page change.
-      &::before,
-      &::after {
-        opacity: 0;
-      }
-    }
-
-    .corner__line {
-      opacity: 1;
-    }
-  }
-
-  // Close: stretch in, trailing just behind the circle's edge, thinning and
-  // dimming to match the ring.
-  :host-context(.page-leaving) {
-    .corners {
-      transition: inset 0.25s var(--shutter-out);
-    }
-
-    .corner__line {
-      --lw: calc(var(--ring-inset, 24px) - var(--ring-gap, 24px) + 4 * var(--ring-gap, 24px) + 64px);
-      --lt: var(--stroke); // bracket weight, like the ring
-      --lc: rgba(150, 150, 150, 0.45);
-      // Ends at ~0.4s, before the page swaps (SHUTTER_SWAP_MS = 440ms).
-      transition: width 0.36s var(--shutter-in) 0.04s, height 0.3s ease 0.04s,
-        transform 0.3s ease 0.04s, background-color 0.3s ease 0.04s;
-    }
-  }
-
-  // Open: contract ahead of the expanding circle, pulling it open, and
-  // brighten back into the white dot.
-  :host-context(.page-entering) .corner__line {
-    transition: width 0.6s var(--shutter-out), height 0.45s ease 0.15s,
-      transform 0.45s ease 0.15s, background-color 0.45s ease 0.15s;
-  }
-  :host-context(.page-instant) {
-    .corners,
-    .corner__line {
-      transition: none;
-    }
+// Open: contract ahead of the expanding circle, pulling it open, and
+// brighten back into the white dot.
+:host-context(.page-entering.bp-desk) .corner__line {
+  transition: width 0.6s var(--shutter-out), height 0.45s ease 0.15s,
+    transform 0.45s ease 0.15s, background-color 0.45s ease 0.15s;
+}
+:host-context(.page-instant.bp-desk) {
+  .corners,
+  .corner__line {
+    transition: none;
   }
 }
 // Phones / tablets: tighter corners on the full-height screen.
-@media (max-width: 1000px) {
-  :host {
-    --inset: 16px;
-    --bracket: 22px;
-    --stroke: 2px;
-    --dot: 5px;
-  }
+// (was @media (max-width: 1000px))
+:host-context(.bp-tab) {
+  --inset: 16px;
+  --bracket: 22px;
+  --stroke: 2px;
+  --dot: 5px;
 }

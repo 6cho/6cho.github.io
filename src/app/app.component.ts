@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+﻿import { Component, DestroyRef, HostBinding, afterNextRender, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { MainContentComponent } from './components/main-content/main-content.component';
@@ -18,6 +18,39 @@ export class AppComponent {
   routesData: any[] = [];
 
   scroll: number = 0;
+
+  constructor() {
+    // The layout (desktop / tablet / phone) is driven by classes on <html>
+    // (set before first paint in index.html). Crossing a breakpoint swaps them
+    // inside a view transition, so the device, screen and rail glide into
+    // their new layout (see `.layout-morphing` in styles.scss).
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      const root = document.documentElement;
+      const apply = () => {
+        const w = window.innerWidth;
+        root.classList.toggle('bp-desk', w > 1000);
+        root.classList.toggle('bp-tab', w <= 1000);
+        root.classList.toggle('bp-phone', w <= 700);
+      };
+      const doc = document as Document & {
+        startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+      };
+      const onCross = () => {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!doc.startViewTransition || reduce || root.classList.contains('theme-switching')) {
+          apply();
+          return;
+        }
+        root.classList.add('layout-morphing');
+        doc.startViewTransition(apply).finished.finally(() => root.classList.remove('layout-morphing'));
+      };
+      const queries = ['(max-width: 1000px)', '(max-width: 700px)'].map((q) => window.matchMedia(q));
+      queries.forEach((q) => q.addEventListener('change', onCross));
+      destroyRef.onDestroy(() => queries.forEach((q) => q.removeEventListener('change', onCross)));
+      apply();
+    });
+  }
 
   ngOnInit() {
     this.routesData = this.getRoutes() ?? [];

@@ -42,7 +42,7 @@ const SHUTTER_SWAP_MS = 440;
 
 /** How long to wait for the current page to leave before navigating. */
 export function pageLeaveMs(): number {
-  return window.innerWidth > 1000 ? SHUTTER_SWAP_MS : PAGE_FADE_MS;
+  return document.documentElement.classList.contains('bp-desk') ? SHUTTER_SWAP_MS : PAGE_FADE_MS;
 }
 import { DynamicCornersComponent } from '../dynamic-corners/dynamic-corners.component';
 
