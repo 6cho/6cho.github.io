@@ -1,8 +1,10 @@
 ﻿import {
   ChangeDetectorRef,
   Component,
+  ElementRef,
   EventEmitter,
   HostBinding,
+  HostListener,
   Input,
   Output,
   PLATFORM_ID,
@@ -82,6 +84,29 @@ export class NavigationComponent {
 
   constructor(private readonly router: Router) {}
 
+  /** Phones: the page-key menu above the dock. */
+  menuOpen = false;
+
+  toggleMenu(event: MouseEvent) {
+    if (event.detail) (event.currentTarget as HTMLElement).blur();
+    this.menuOpen = !this.menuOpen;
+  }
+
+  /** Close the menu on a tap outside it. */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.menuOpen && !this.host.nativeElement.contains(event.target as Node)) {
+      this.menuOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.menuOpen = false;
+  }
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+
   /** Page whose key was just pressed; it shows active before the display changes. */
   private pressed: string | null = null;
 
@@ -95,6 +120,7 @@ export class NavigationComponent {
   navigateURL(path: string) {
     const root = document.documentElement;
     if (this.router.url === '/' + path || root.classList.contains(PAGE_LEAVING)) return;
+    this.menuOpen = false;
     // Press the key first (it sinks and lights now), then the display changes.
     this.pressed = path.split('/').pop() ?? null;
     root.classList.add(PAGE_LEAVING);
